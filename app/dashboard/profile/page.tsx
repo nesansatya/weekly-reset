@@ -19,6 +19,10 @@ export default function ProfilePage() {
   const [nameInput, setNameInput] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [isPro, setIsPro] = useState(false)
+  const [subscriptionStatus, setSubscriptionStatus] = useState('free')
+  const [periodEnd, setPeriodEnd] = useState<string | null>(null)
+  const [portalLoading, setPortalLoading] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -37,6 +41,9 @@ export default function ProfilePage() {
         setWeightKg(data.weight_kg)
         setWeightInput(String(data.weight_kg))
       }
+      if (data?.is_pro) setIsPro(data.is_pro)
+      if (data?.subscription_status) setSubscriptionStatus(data.subscription_status)
+      if (data?.subscription_period_end) setPeriodEnd(data.subscription_period_end)
     }
     load()
   }, [])
@@ -52,9 +59,7 @@ export default function ProfilePage() {
       }
     }
     await Promise.all([
-      supabase.auth.updateUser({
-        data: { full_name: nameInput, goal }
-      }),
+      supabase.auth.updateUser({ data: { full_name: nameInput, goal } }),
       fetch('/api/profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -66,6 +71,14 @@ export default function ProfilePage() {
     setSaving(false)
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
+  }
+
+  async function openBillingPortal() {
+    setPortalLoading(true)
+    const res = await fetch('/api/stripe/portal', { method: 'POST' })
+    const { url } = await res.json()
+    if (url) window.location.href = url
+    setPortalLoading(false)
   }
 
   async function signOut() {
@@ -88,8 +101,48 @@ export default function ProfilePage() {
         </div>
       </div>
 
+      {/* Pro status card */}
+      {isPro ? (
+        <div style={s({ margin: '20px 22px 0', background: '#1a1a18', borderRadius: 14, padding: 16, position: 'relative', overflow: 'hidden' })}>
+          <div style={s({ position: 'absolute', width: 100, height: 100, borderRadius: '50%', background: '#7db84a', opacity: 0.1, top: -20, right: -20 })}/>
+          <div style={s({ position: 'relative', zIndex: 1 })}>
+            <div style={s({ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 })}>
+              <div style={s({ fontSize: 14, fontWeight: 700, color: '#a8c48a' })}>✦ Weekly Reset Pro</div>
+              <div style={s({ background: 'rgba(125,184,74,0.2)', border: '1px solid rgba(125,184,74,0.4)', borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 600, color: '#a8c48a' })}>Active</div>
+            </div>
+            {periodEnd && (
+              <div style={s({ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginBottom: 12 })}>
+                Renews {new Date(periodEnd).toLocaleDateString('en-MY', { day: 'numeric', month: 'long', year: 'numeric' })}
+              </div>
+            )}
+            <button onClick={openBillingPortal} disabled={portalLoading} style={s({
+              padding: '8px 16px', background: 'rgba(255,255,255,0.1)',
+              border: '1px solid rgba(255,255,255,0.2)', borderRadius: 8,
+              color: 'rgba(255,255,255,0.7)', fontSize: 12, fontWeight: 600,
+              cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif",
+            })}>
+              {portalLoading ? 'Loading...' : 'Manage subscription →'}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div style={s({ margin: '20px 22px 0', background: 'linear-gradient(135deg, #e8f5e0, #f0f7e8)', border: '1px solid #97C459', borderRadius: 14, padding: 16 })}>
+          <div style={s({ fontSize: 14, fontWeight: 700, color: '#27500A', marginBottom: 4 })}>Upgrade to Pro 🚀</div>
+          <div style={s({ fontSize: 12, color: '#3B6D11', marginBottom: 12, lineHeight: 1.5 })}>
+            Unlock custom workouts, meal plans, AI check-ins and extended history.
+          </div>
+          <button onClick={() => router.push('/upgrade')} style={s({
+            padding: '10px 20px', background: '#4a7c2f', color: 'white',
+            border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700,
+            cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif",
+          })}>
+            See plans →
+          </button>
+        </div>
+      )}
+
       {/* Name */}
-      <div style={s({ margin: '24px 22px 0', background: 'white', borderRadius: 14, border: '1px solid #e4e0d8', padding: 16 })}>
+      <div style={s({ margin: '16px 22px 0', background: 'white', borderRadius: 14, border: '1px solid #e4e0d8', padding: 16 })}>
         <div style={s({ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: '#7a7a72', textTransform: 'uppercase', marginBottom: 10 })}>Your name</div>
         <input
           type="text"
@@ -137,7 +190,7 @@ export default function ProfilePage() {
         )}
       </div>
 
-      {/* Save button */}
+      {/* Save */}
       <div style={s({ margin: '16px 22px 0' })}>
         <button onClick={saveProfile} disabled={saving} style={s({
           width: '100%', padding: 15, background: '#1a1a18', color: 'white',
@@ -152,13 +205,13 @@ export default function ProfilePage() {
       {/* App info */}
       <div style={s({ margin: '12px 22px 0', background: 'white', borderRadius: 14, border: '1px solid #e4e0d8', overflow: 'hidden' })}>
         {[
-          { label: 'Version', value: 'Free · v1.0' },
+          { label: 'Version', value: isPro ? 'Pro · v1.0' : 'Free · v1.0' },
+          { label: 'Plan', value: isPro ? '✦ Weekly Reset Pro' : 'Free' },
           { label: 'Data', value: 'Stored securely' },
-          { label: 'Cost', value: '$0 / month' },
         ].map((item, i, arr) => (
           <div key={item.label} style={s({ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '13px 16px', borderBottom: i < arr.length - 1 ? '1px solid #f5f2ec' : 'none' })}>
             <div style={s({ fontSize: 13, color: '#3d3d3a', fontWeight: 500 })}>{item.label}</div>
-            <div style={s({ fontSize: 13, color: '#7a7a72' })}>{item.value}</div>
+            <div style={s({ fontSize: 13, color: isPro && item.label === 'Plan' ? '#4a7c2f' : '#7a7a72', fontWeight: isPro && item.label === 'Plan' ? 600 : 400 })}>{item.value}</div>
           </div>
         ))}
       </div>
