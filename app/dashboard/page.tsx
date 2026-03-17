@@ -63,36 +63,31 @@ function getRecommendation(mood: number, energy: number) {
   if (m <= 2 && e <= 2) return {
     message: "Rough day — and that's completely okay.",
     action: "Skip the hard stuff today. One 10-min walk outside will shift your energy more than anything else right now.",
-    highlight: [0, 1, 5],
-    highlightLabel: "Focus on just these 3 today",
+    highlight: [0, 1, 5], highlightLabel: "Focus on just these 3 today",
     bg: '#fde8e0', border: '#f0997b', text: '#712b13', dot: '#D85A30',
   }
   if (m <= 2 && e >= 3) return {
     message: "Feeling down but your body has energy.",
     action: "Use that energy — move your body for 20 minutes. Physical activity is the fastest natural mood booster.",
-    highlight: [0, 2, 3],
-    highlightLabel: "These will lift your mood today",
+    highlight: [0, 2, 3], highlightLabel: "These will lift your mood today",
     bg: '#fff4e0', border: '#f5d58a', text: '#633806', dot: '#BA7517',
   }
   if (m >= 3 && e <= 2) return {
     message: "Good mindset, but your body needs fuel.",
     action: "Drink 500ml of water right now, eat a proper meal, and get to bed before midnight tonight.",
-    highlight: [1, 3, 5],
-    highlightLabel: "Your energy boosters for today",
+    highlight: [1, 3, 5], highlightLabel: "Your energy boosters for today",
     bg: '#e0eeff', border: '#85B7EB', text: '#0C447C', dot: '#185FA5',
   }
   if (m >= 4 && e >= 4) return {
     message: "You're in the zone today! 🔥",
     action: "Great day to push harder — add an extra set, go for a longer walk, or tick off every habit on the list.",
-    highlight: [],
-    highlightLabel: "",
+    highlight: [], highlightLabel: "",
     bg: '#e8f5e0', border: '#97C459', text: '#27500A', dot: '#4a7c2f',
   }
   return {
     message: "Steady day — stick to the plan.",
     action: "Consistency on average days is what builds the habit. Complete your routine and keep the streak alive.",
-    highlight: [],
-    highlightLabel: "",
+    highlight: [], highlightLabel: "",
     bg: '#f0f7e8', border: '#c0dd97', text: '#3B6D11', dot: '#639922',
   }
 }
@@ -117,7 +112,8 @@ export default function Dashboard() {
   const [streak, setStreak] = useState(0)
   const [saving, setSaving] = useState(false)
   const [weightKg, setWeightKg] = useState<number | null>(null)
-  const [showWeightPrompt, setShowWeightPrompt] = useState(true)
+  const [profileLoaded, setProfileLoaded] = useState(false)
+  const [showWeightPrompt, setShowWeightPrompt] = useState(false)
   const [weightInput, setWeightInput] = useState('')
   const [weightUnit, setWeightUnit] = useState<'kg' | 'lbs'>('kg')
 
@@ -153,9 +149,11 @@ export default function Dashboard() {
         } else {
           setShowWeightPrompt(true)
         }
+        setProfileLoaded(true)
       } catch (e) {
         console.log(e)
         setShowWeightPrompt(true)
+        setProfileLoaded(true)
       }
     }
     init()
@@ -166,14 +164,17 @@ export default function Dashboard() {
     if (isNaN(kg) || kg <= 0) return
     if (weightUnit === 'lbs') kg = Math.round(kg / 2.205 * 10) / 10
     try {
-      await fetch('/api/profile', {
+      const res = await fetch('/api/profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ weight_kg: kg }),
       })
-      setWeightKg(kg)
-      setShowWeightPrompt(false)
-      setWeightInput('')
+      const { data } = await res.json()
+      if (data) {
+        setWeightKg(kg)
+        setShowWeightPrompt(false)
+        setWeightInput('')
+      }
     } catch (e) { console.log(e) }
   }
 
@@ -226,7 +227,7 @@ export default function Dashboard() {
   const s = (obj: React.CSSProperties) => obj
 
   return (
-    <main style={s({ minHeight: '100vh', background: '#faf8f4', fontFamily: "'DM Sans', Arial, sans-serif", paddingBottom: 80 })}>
+    <main style={s({ minHeight: '100vh', background: '#faf8f4', fontFamily: "'DM Sans', Arial, sans-serif", paddingBottom: 120 })}>
 
       <div style={s({ padding: '52px 22px 0' })}>
         <div style={s({ fontSize: 12, color: '#7a7a72', fontWeight: 500 })}>Good morning,</div>
@@ -352,11 +353,11 @@ export default function Dashboard() {
       <div style={s({ margin: '16px 22px 0' })}>
         <div style={s({ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: '#7a7a72', textTransform: 'uppercase', marginBottom: 10 })}>Water intake</div>
 
-        {showWeightPrompt && (
+        {profileLoaded && showWeightPrompt && (
           <div style={s({ background: '#e8f5e0', border: '1px solid #97C459', borderRadius: 14, padding: 16, marginBottom: 10 })}>
             <div style={s({ fontSize: 13, fontWeight: 700, color: '#27500A', marginBottom: 4 })}>Personalise your water goal 💧</div>
             <div style={s({ fontSize: 12, color: '#3B6D11', marginBottom: 12, lineHeight: 1.5 })}>
-              Enter your weight and we'll calculate your exact daily water need using the standard formula (weight × 0.033L).
+              Enter your weight and we'll calculate your exact daily water need (weight × 0.033L). Each 💧 = 250ml.
             </div>
             <div style={s({ display: 'flex', gap: 8, marginBottom: 10 })}>
               <button onClick={() => setWeightUnit('kg')} style={s({ padding: '6px 16px', borderRadius: 20, border: `1.5px solid ${weightUnit === 'kg' ? '#4a7c2f' : '#c0dd97'}`, background: weightUnit === 'kg' ? '#4a7c2f' : 'white', color: weightUnit === 'kg' ? 'white' : '#4a7c2f', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif" })}>kg</button>
@@ -376,8 +377,8 @@ export default function Dashboard() {
             {weightInput && !isNaN(parseFloat(weightInput)) && parseFloat(weightInput) > 0 && (
               <div style={s({ marginTop: 8, fontSize: 12, color: '#3B6D11', background: 'rgba(255,255,255,0.6)', borderRadius: 6, padding: '6px 10px' })}>
                 {weightUnit === 'kg'
-                  ? `${weightInput} kg = ${Math.round(parseFloat(weightInput) * 2.205)} lbs → your daily goal: ${Math.round(parseFloat(weightInput) * 0.033 * 10) / 10}L (${Math.max(6, Math.min(16, Math.round(parseFloat(weightInput) * 0.033 / 0.25)))} glasses)`
-                  : `${weightInput} lbs = ${Math.round(parseFloat(weightInput) / 2.205 * 10) / 10} kg → your daily goal: ${Math.round(parseFloat(weightInput) / 2.205 * 0.033 * 10) / 10}L (${Math.max(6, Math.min(16, Math.round(parseFloat(weightInput) / 2.205 * 0.033 / 0.25)))} glasses)`
+                  ? `${weightInput} kg = ${Math.round(parseFloat(weightInput) * 2.205)} lbs → daily goal: ${Math.round(parseFloat(weightInput) * 0.033 * 10) / 10}L (${Math.max(6, Math.min(16, Math.round(parseFloat(weightInput) * 0.033 / 0.25)))} × 250ml glasses)`
+                  : `${weightInput} lbs = ${Math.round(parseFloat(weightInput) / 2.205 * 10) / 10} kg → daily goal: ${Math.round(parseFloat(weightInput) / 2.205 * 0.033 * 10) / 10}L (${Math.max(6, Math.min(16, Math.round(parseFloat(weightInput) / 2.205 * 0.033 / 0.25)))} × 250ml glasses)`
                 }
               </div>
             )}
@@ -385,13 +386,15 @@ export default function Dashboard() {
         )}
 
         <div style={s({ background: 'white', borderRadius: 14, border: '1px solid #e4e0d8', padding: 16 })}>
-          <div style={s({ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 })}>
+          <div style={s({ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 })}>
             <div>
               <div style={s({ fontSize: 12, fontWeight: 600, color: '#3d3d3a' })}>
                 Goal: {waterGoal.litres}L
-                {weightKg && <span style={s({ fontSize: 11, color: '#7a7a72', fontWeight: 400 })}> · based on {weightKg}kg{lbsDisplay ? ` / ${lbsDisplay}lbs` : ''}</span>}
+                {weightKg && <span style={s({ fontSize: 11, color: '#7a7a72', fontWeight: 400 })}> · {weightKg}kg{lbsDisplay ? ` / ${lbsDisplay}lbs` : ''}</span>}
               </div>
-              {!weightKg && <div style={s({ fontSize: 11, color: '#7a7a72', marginTop: 2 })}>Each 💧 = 250ml · ${waterGoal.glasses} glasses to reach your goal</div>}
+              <div style={s({ fontSize: 11, color: '#7a7a72', marginTop: 2 })}>
+                Each 💧 = 250ml · {waterGoal.glasses} glasses to reach your goal
+              </div>
             </div>
             <div style={s({ display: 'flex', alignItems: 'center', gap: 6 })}>
               <div style={s({ background: '#e8f5e0', color: '#4a7c2f', borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 600 })}>{water} / {waterGoal.glasses}</div>
@@ -400,7 +403,7 @@ export default function Dashboard() {
               )}
             </div>
           </div>
-          <div style={s({ display: 'flex', gap: 7, flexWrap: 'wrap' })}>
+          <div style={s({ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 12 })}>
             {Array.from({ length: waterGoal.glasses }, (_, i) => (
               <div key={i} onClick={() => {
                 const newW = i < water ? i : i + 1
@@ -451,8 +454,8 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div style={s({ margin: '16px 22px 0', background: '#e1f5ee', borderLeft: '3px solid #5dcaa5', borderRadius: '0 12px 12px 0', padding: '10px 14px' })}>
-        <div style={s({ fontSize: 13, color: '#085041', lineHeight: 1.5, fontStyle: 'italic' })}>
+      <div style={s({ margin: '16px 22px 20px', background: '#e1f5ee', borderLeft: '3px solid #5dcaa5', borderRadius: '0 12px 12px 0', padding: '12px 14px' })}>
+        <div style={s({ fontSize: 13, color: '#085041', lineHeight: 1.6, fontStyle: 'italic' })}>
           Sleep alone fixes many issues: hormones, belly fat, eczema flare-ups, and stress. Aim for 7–8 hours.
         </div>
       </div>
