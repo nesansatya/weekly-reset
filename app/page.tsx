@@ -1,8 +1,17 @@
 'use client'
+import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { createClient } from './lib/supabase/client'
 
 export default function Home() {
   const router = useRouter()
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) router.push('/dashboard')
+    })
+  }, [])
 
   return (
     <main style={{
@@ -17,7 +26,6 @@ export default function Home() {
       position: 'relative',
       overflow: 'hidden',
     }}>
-      {/* Background circles */}
       <div style={{
         position: 'absolute', width: 340, height: 340,
         borderRadius: '50%', background: '#7db84a',
@@ -30,14 +38,11 @@ export default function Home() {
       }}/>
 
       <div style={{ position: 'relative', zIndex: 1, maxWidth: 400, width: '100%' }}>
-
-        {/* Tag */}
         <div style={{
           display: 'inline-flex', alignItems: 'center', gap: 6,
           background: 'rgba(125,184,74,0.15)',
           border: '1px solid rgba(125,184,74,0.3)',
-          borderRadius: 30, padding: '5px 14px',
-          marginBottom: 28,
+          borderRadius: 30, padding: '5px 14px', marginBottom: 28,
         }}>
           <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#7db84a' }}/>
           <span style={{ fontSize: 12, fontWeight: 600, color: '#7db84a', letterSpacing: '0.04em' }}>
@@ -45,7 +50,6 @@ export default function Home() {
           </span>
         </div>
 
-        {/* Heading */}
         <h1 style={{
           fontSize: 42, fontWeight: 700, color: 'white',
           lineHeight: 1.1, marginBottom: 16,
@@ -62,7 +66,6 @@ export default function Home() {
           A simple weekly routine built for people who want to feel better — without spending money on gyms or instructors.
         </p>
 
-        {/* Stats */}
         <div style={{ display: 'flex', gap: 10, marginBottom: 36 }}>
           {[
             { num: '$0', label: 'Cost to start' },
@@ -85,7 +88,6 @@ export default function Home() {
           ))}
         </div>
 
-        {/* Buttons */}
         <button
           onClick={() => router.push('/signup')}
           style={{
@@ -112,7 +114,6 @@ export default function Home() {
           }}>
           Sign in
         </button>
-
       </div>
     </main>
   )
