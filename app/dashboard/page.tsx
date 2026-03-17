@@ -117,7 +117,7 @@ export default function Dashboard() {
   const [streak, setStreak] = useState(0)
   const [saving, setSaving] = useState(false)
   const [weightKg, setWeightKg] = useState<number | null>(null)
-  const [showWeightPrompt, setShowWeightPrompt] = useState(false)
+  const [showWeightPrompt, setShowWeightPrompt] = useState(true)
   const [weightInput, setWeightInput] = useState('')
   const [weightUnit, setWeightUnit] = useState<'kg' | 'lbs'>('kg')
 
@@ -149,10 +149,14 @@ export default function Dashboard() {
         if (streakData.data) setStreak(streakData.data.current_streak || 0)
         if (profile.data?.weight_kg) {
           setWeightKg(profile.data.weight_kg)
+          setShowWeightPrompt(false)
         } else {
           setShowWeightPrompt(true)
         }
-      } catch (e) { console.log(e) }
+      } catch (e) {
+        console.log(e)
+        setShowWeightPrompt(true)
+      }
     }
     init()
   }, [])
@@ -161,14 +165,16 @@ export default function Dashboard() {
     let kg = parseFloat(weightInput)
     if (isNaN(kg) || kg <= 0) return
     if (weightUnit === 'lbs') kg = Math.round(kg / 2.205 * 10) / 10
-    await fetch('/api/profile', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ weight_kg: kg }),
-    })
-    setWeightKg(kg)
-    setShowWeightPrompt(false)
-    setWeightInput('')
+    try {
+      await fetch('/api/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ weight_kg: kg }),
+      })
+      setWeightKg(kg)
+      setShowWeightPrompt(false)
+      setWeightInput('')
+    } catch (e) { console.log(e) }
   }
 
   const saveData = useCallback(async (updates: {
@@ -222,7 +228,6 @@ export default function Dashboard() {
   return (
     <main style={s({ minHeight: '100vh', background: '#faf8f4', fontFamily: "'DM Sans', Arial, sans-serif", paddingBottom: 80 })}>
 
-      {/* Header */}
       <div style={s({ padding: '52px 22px 0' })}>
         <div style={s({ fontSize: 12, color: '#7a7a72', fontWeight: 500 })}>Good morning,</div>
         <div style={s({ fontSize: 24, fontWeight: 700, color: '#1a1a18', fontFamily: "'DM Serif Display', Georgia, serif", marginTop: 2 })}>
@@ -238,7 +243,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Hero card */}
       <div style={s({ margin: '16px 22px 0', background: '#1a1a18', borderRadius: 20, padding: 20, position: 'relative', overflow: 'hidden' })}>
         <div style={s({ position: 'absolute', width: 150, height: 150, borderRadius: '50%', background: '#7db84a', opacity: 0.08, top: -40, right: -40 })}/>
         <div style={s({ position: 'relative', zIndex: 1 })}>
@@ -260,7 +264,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Day selector */}
       <div style={s({ display: 'flex', gap: 6, padding: '16px 22px 0', overflowX: 'auto', scrollbarWidth: 'none' })}>
         {days.map((d, i) => (
           <button key={i} onClick={() => { setCurrentDay(i); setCheckedEx({}) }} style={s({
@@ -275,7 +278,6 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* Exercises */}
       <div style={s({ margin: '16px 22px 0' })}>
         <div style={s({ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: '#7a7a72', textTransform: 'uppercase', marginBottom: 10 })}>Today's workout</div>
         <div style={s({ background: 'white', borderRadius: 14, border: '1px solid #e4e0d8', overflow: 'hidden' })}>
@@ -304,7 +306,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Mood */}
       <div style={s({ margin: '16px 22px 0' })}>
         <div style={s({ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: '#7a7a72', textTransform: 'uppercase', marginBottom: 10 })}>How are you feeling?</div>
         <div style={s({ background: 'white', borderRadius: 14, border: '1px solid #e4e0d8', padding: 16 })}>
@@ -335,8 +336,6 @@ export default function Dashboard() {
             <span style={s({ fontSize: 10, color: '#7a7a72' })}>Energised</span>
           </div>
         </div>
-
-        {/* Recommendation banner */}
         {rec && (
           <div style={s({ marginTop: 10, background: rec.bg, border: `1px solid ${rec.border}`, borderRadius: 14, padding: '14px 16px' })}>
             <div style={s({ display: 'flex', alignItems: 'flex-start', gap: 10 })}>
@@ -350,18 +349,18 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* Water */}
       <div style={s({ margin: '16px 22px 0' })}>
         <div style={s({ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: '#7a7a72', textTransform: 'uppercase', marginBottom: 10 })}>Water intake</div>
 
-        {/* Weight prompt */}
         {showWeightPrompt && (
           <div style={s({ background: '#e8f5e0', border: '1px solid #97C459', borderRadius: 14, padding: 16, marginBottom: 10 })}>
             <div style={s({ fontSize: 13, fontWeight: 700, color: '#27500A', marginBottom: 4 })}>Personalise your water goal 💧</div>
-            <div style={s({ fontSize: 12, color: '#3B6D11', marginBottom: 12 })}>Enter your weight to calculate your exact daily water need.</div>
+            <div style={s({ fontSize: 12, color: '#3B6D11', marginBottom: 12, lineHeight: 1.5 })}>
+              Enter your weight and we'll calculate your exact daily water need using the standard formula (weight × 0.033L).
+            </div>
             <div style={s({ display: 'flex', gap: 8, marginBottom: 10 })}>
-              <button onClick={() => setWeightUnit('kg')} style={s({ padding: '6px 16px', borderRadius: 20, border: `1.5px solid ${weightUnit === 'kg' ? '#4a7c2f' : '#c0dd97'}`, background: weightUnit === 'kg' ? '#4a7c2f' : 'white', color: weightUnit === 'kg' ? 'white' : '#4a7c2f', fontSize: 12, fontWeight: 600, cursor: 'pointer' })}>kg</button>
-              <button onClick={() => setWeightUnit('lbs')} style={s({ padding: '6px 16px', borderRadius: 20, border: `1.5px solid ${weightUnit === 'lbs' ? '#4a7c2f' : '#c0dd97'}`, background: weightUnit === 'lbs' ? '#4a7c2f' : 'white', color: weightUnit === 'lbs' ? 'white' : '#4a7c2f', fontSize: 12, fontWeight: 600, cursor: 'pointer' })}>lbs</button>
+              <button onClick={() => setWeightUnit('kg')} style={s({ padding: '6px 16px', borderRadius: 20, border: `1.5px solid ${weightUnit === 'kg' ? '#4a7c2f' : '#c0dd97'}`, background: weightUnit === 'kg' ? '#4a7c2f' : 'white', color: weightUnit === 'kg' ? 'white' : '#4a7c2f', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif" })}>kg</button>
+              <button onClick={() => setWeightUnit('lbs')} style={s({ padding: '6px 16px', borderRadius: 20, border: `1.5px solid ${weightUnit === 'lbs' ? '#4a7c2f' : '#c0dd97'}`, background: weightUnit === 'lbs' ? '#4a7c2f' : 'white', color: weightUnit === 'lbs' ? 'white' : '#4a7c2f', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif" })}>lbs</button>
             </div>
             <div style={s({ display: 'flex', gap: 8 })}>
               <input
@@ -370,15 +369,15 @@ export default function Dashboard() {
                 value={weightInput}
                 onChange={e => setWeightInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && saveWeight()}
-                style={s({ flex: 1, padding: '10px 12px', border: '1.5px solid #97C459', borderRadius: 8, fontSize: 14, color: '#1a1a18', background: 'white', outline: 'none' })}
+                style={s({ flex: 1, padding: '10px 12px', border: '1.5px solid #97C459', borderRadius: 8, fontSize: 14, color: '#1a1a18', background: 'white', outline: 'none', fontFamily: "'DM Sans', Arial, sans-serif" })}
               />
-              <button onClick={saveWeight} style={s({ padding: '10px 20px', background: '#4a7c2f', color: 'white', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer' })}>Save</button>
+              <button onClick={saveWeight} style={s({ padding: '10px 20px', background: '#4a7c2f', color: 'white', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif" })}>Save</button>
             </div>
-            {weightInput && !isNaN(parseFloat(weightInput)) && (
-              <div style={s({ marginTop: 8, fontSize: 12, color: '#3B6D11' })}>
+            {weightInput && !isNaN(parseFloat(weightInput)) && parseFloat(weightInput) > 0 && (
+              <div style={s({ marginTop: 8, fontSize: 12, color: '#3B6D11', background: 'rgba(255,255,255,0.6)', borderRadius: 6, padding: '6px 10px' })}>
                 {weightUnit === 'kg'
-                  ? `${weightInput} kg = ${Math.round(parseFloat(weightInput) * 2.205)} lbs → daily goal: ${Math.round(parseFloat(weightInput) * 0.033 * 10) / 10}L`
-                  : `${weightInput} lbs = ${Math.round(parseFloat(weightInput) / 2.205 * 10) / 10} kg → daily goal: ${Math.round(parseFloat(weightInput) / 2.205 * 0.033 * 10) / 10}L`
+                  ? `${weightInput} kg = ${Math.round(parseFloat(weightInput) * 2.205)} lbs → your daily goal: ${Math.round(parseFloat(weightInput) * 0.033 * 10) / 10}L (${Math.max(6, Math.min(16, Math.round(parseFloat(weightInput) * 0.033 / 0.25)))} glasses)`
+                  : `${weightInput} lbs = ${Math.round(parseFloat(weightInput) / 2.205 * 10) / 10} kg → your daily goal: ${Math.round(parseFloat(weightInput) / 2.205 * 0.033 * 10) / 10}L (${Math.max(6, Math.min(16, Math.round(parseFloat(weightInput) / 2.205 * 0.033 / 0.25)))} glasses)`
                 }
               </div>
             )}
@@ -392,12 +391,12 @@ export default function Dashboard() {
                 Goal: {waterGoal.litres}L
                 {weightKg && <span style={s({ fontSize: 11, color: '#7a7a72', fontWeight: 400 })}> · based on {weightKg}kg{lbsDisplay ? ` / ${lbsDisplay}lbs` : ''}</span>}
               </div>
-              {!weightKg && <div style={s({ fontSize: 11, color: '#7a7a72' })}>Set your weight above for a personalised goal</div>}
+              {!weightKg && <div style={s({ fontSize: 11, color: '#7a7a72', marginTop: 2 })}>Set your weight above for a personalised goal</div>}
             </div>
             <div style={s({ display: 'flex', alignItems: 'center', gap: 6 })}>
               <div style={s({ background: '#e8f5e0', color: '#4a7c2f', borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 600 })}>{water} / {waterGoal.glasses}</div>
               {weightKg && (
-                <button onClick={() => setShowWeightPrompt(!showWeightPrompt)} style={s({ background: 'none', border: 'none', fontSize: 16, cursor: 'pointer', color: '#7a7a72' })}>⚙️</button>
+                <button onClick={() => setShowWeightPrompt(!showWeightPrompt)} style={s({ background: 'none', border: 'none', fontSize: 16, cursor: 'pointer' })}>⚙️</button>
               )}
             </div>
           </div>
@@ -418,7 +417,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Habits */}
       <div style={s({ margin: '16px 22px 0' })}>
         <div style={s({ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 })}>
           <div style={s({ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: '#7a7a72', textTransform: 'uppercase' })}>Daily habits</div>
@@ -453,14 +451,12 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Tip */}
       <div style={s({ margin: '16px 22px 0', background: '#e1f5ee', borderLeft: '3px solid #5dcaa5', borderRadius: '0 12px 12px 0', padding: '10px 14px' })}>
         <div style={s({ fontSize: 13, color: '#085041', lineHeight: 1.5, fontStyle: 'italic' })}>
           Sleep alone fixes many issues: hormones, belly fat, eczema flare-ups, and stress. Aim for 7–8 hours.
         </div>
       </div>
 
-      {/* Bottom nav */}
       <div style={s({ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'white', borderTop: '1px solid #e4e0d8', display: 'flex', padding: '10px 0 20px', zIndex: 100 })}>
         {[
           { icon: '🏠', label: 'Today', path: '/dashboard', active: true },
