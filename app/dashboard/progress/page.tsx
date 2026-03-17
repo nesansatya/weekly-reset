@@ -1,5 +1,6 @@
 'use client'
 import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
 const timeline = [
   { week: 'After 4 weeks', dot: '#7db84a', desc: 'Better sleep quality · more stable energy during the day' },
@@ -18,6 +19,20 @@ const s = (o: React.CSSProperties) => o
 
 export default function Progress() {
   const router = useRouter()
+  const [streakData, setStreakData] = useState({ current_streak: 0, longest_streak: 0, total_active_days: 0, total_habits_completed: 0 })
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const res = await fetch('/api/streak')
+        const { data } = await res.json()
+        if (data) setStreakData(data)
+      } catch(e) { console.log(e) }
+      setLoading(false)
+    }
+    load()
+  }, [])
 
   return (
     <main style={s({ minHeight: '100vh', background: '#faf8f4', fontFamily: "'DM Sans', Arial, sans-serif", paddingBottom: 80 })}>
@@ -27,26 +42,40 @@ export default function Progress() {
         <div style={s({ fontSize: 13, color: '#7a7a72', marginTop: 4 })}>All-time stats</div>
       </div>
 
-      {/* Stats */}
-      <div style={s({ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, margin: '16px 22px 0' })}>
-        {[
-          { num: '18', label: 'Active days', color: '#4a7c2f' },
-          { num: '5', label: 'Day streak', color: '#8a6200' },
-          { num: '84', label: 'Habits done', color: '#534ab7' },
-        ].map(s2 => (
-          <div key={s2.label} style={s({ background: '#f5f2ec', borderRadius: 12, padding: '12px' })}>
-            <div style={s({ fontSize: 26, fontWeight: 700, color: s2.color, fontFamily: "'DM Serif Display', Georgia, serif" })}>{s2.num}</div>
-            <div style={s({ fontSize: 10, color: '#7a7a72', marginTop: 2, fontWeight: 500 })}>{s2.label}</div>
+      {loading ? (
+        <div style={s({ textAlign: 'center', padding: '60px 22px', color: '#7a7a72', fontSize: 14 })}>Loading your stats...</div>
+      ) : (
+        <>
+          {/* Real stats */}
+          <div style={s({ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, margin: '16px 22px 0' })}>
+            {[
+              { num: String(streakData.total_active_days), label: 'Active days', color: '#4a7c2f' },
+              { num: String(streakData.current_streak), label: 'Day streak', color: '#8a6200' },
+              { num: String(streakData.total_habits_completed), label: 'Habits done', color: '#534ab7' },
+            ].map(s2 => (
+              <div key={s2.label} style={s({ background: '#f5f2ec', borderRadius: 12, padding: 12 })}>
+                <div style={s({ fontSize: 26, fontWeight: 700, color: s2.color, fontFamily: "'DM Serif Display', Georgia, serif" })}>{s2.num}</div>
+                <div style={s({ fontSize: 10, color: '#7a7a72', marginTop: 2, fontWeight: 500 })}>{s2.label}</div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+
+          {/* Longest streak */}
+          {streakData.longest_streak > 0 && (
+            <div style={s({ margin: '10px 22px 0', background: '#fff4e0', border: '1px solid #f5d58a', borderRadius: 12, padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' })}>
+              <div style={s({ fontSize: 13, fontWeight: 600, color: '#8a6200' })}>🏆 Longest streak ever</div>
+              <div style={s({ fontSize: 20, fontWeight: 700, color: '#8a6200', fontFamily: "'DM Serif Display', Georgia, serif" })}>{streakData.longest_streak} days</div>
+            </div>
+          )}
+        </>
+      )}
 
       {/* Timeline */}
       <div style={s({ margin: '16px 22px 0', background: 'white', border: '1px solid #e4e0d8', borderRadius: 14, padding: 16 })}>
         <div style={s({ fontSize: 13, fontWeight: 600, color: '#3d3d3a', marginBottom: 14 })}>What to expect</div>
         {timeline.map((t, i) => (
           <div key={i} style={s({ display: 'flex', gap: 12, marginBottom: i < timeline.length - 1 ? 14 : 0 })}>
-            <div style={s({ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0 })}>
+            <div style={s({ display: 'flex', flexDirection: 'column', alignItems: 'center' })}>
               <div style={s({ width: 10, height: 10, borderRadius: '50%', background: t.dot, flexShrink: 0, marginTop: 2 })}/>
               {i < timeline.length - 1 && <div style={s({ width: 1.5, flex: 1, background: '#e4e0d8', marginTop: 4 })}/>}
             </div>
@@ -65,7 +94,7 @@ export default function Progress() {
           { num: '8k', label: 'Daily steps', color: '#185fa5' },
           { num: '8h', label: 'Sleep per night', color: '#1d9e75' },
         ].map(s2 => (
-          <div key={s2.label} style={s({ background: 'white', border: '1px solid #e4e0d8', borderRadius: 12, padding: '12px' })}>
+          <div key={s2.label} style={s({ background: 'white', border: '1px solid #e4e0d8', borderRadius: 12, padding: 12 })}>
             <div style={s({ fontSize: 22, fontWeight: 700, color: s2.color, fontFamily: "'DM Serif Display', Georgia, serif" })}>{s2.num}</div>
             <div style={s({ fontSize: 10, color: '#7a7a72', marginTop: 2 })}>{s2.label}</div>
           </div>
