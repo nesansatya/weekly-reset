@@ -227,7 +227,7 @@ export default function Dashboard() {
   const s = (obj: React.CSSProperties) => obj
 
   return (
-    <main style={s({ minHeight: '100vh', background: '#faf8f4', fontFamily: "'DM Sans', Arial, sans-serif", paddingBottom: 120 })}>
+    <main style={s({ minHeight: '100vh', background: '#faf8f4', fontFamily: "'DM Sans', Arial, sans-serif", paddingBottom: 100 })}>
 
       <div style={s({ padding: '52px 22px 0' })}>
         <div style={s({ fontSize: 12, color: '#7a7a72', fontWeight: 500 })}>Good morning,</div>
