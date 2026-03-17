@@ -56,6 +56,59 @@ const moods = [
   { e: '😊', l: 'Good' }, { e: '😄', l: 'Great' },
 ]
 
+// Recommendations based on mood + energy combo
+function getRecommendation(mood: number, energy: number) {
+  if (mood === 0 && energy === 0) return null
+
+  const m = mood || 3
+  const e = energy || 3
+
+  if (m <= 2 && e <= 2) return {
+    tone: 'low',
+    message: "Rough day — and that's completely okay.",
+    action: "Skip the hard stuff today. One 10-min walk outside will shift your energy more than anything else right now.",
+    highlight: [0, 1, 5], // sunlight, water, sleep
+    highlightLabel: "Focus on just these 3 today",
+    bg: '#fde8e0', border: '#f0997b', text: '#712b13', dot: '#D85A30',
+  }
+
+  if (m <= 2 && e >= 3) return {
+    tone: 'low-mood',
+    message: "Feeling down but your body has energy.",
+    action: "Use that energy — move your body for 20 minutes. Physical activity is the fastest natural mood booster.",
+    highlight: [0, 2, 3], // sunlight, steps, meals
+    highlightLabel: "These will lift your mood today",
+    bg: '#fff4e0', border: '#f5d58a', text: '#633806', dot: '#BA7517',
+  }
+
+  if (m >= 3 && e <= 2) return {
+    tone: 'low-energy',
+    message: "Good mindset, but your body needs fuel.",
+    action: "Drink 500ml of water right now, eat a proper meal, and get to bed before midnight tonight.",
+    highlight: [1, 3, 5], // water, meals, sleep
+    highlightLabel: "Your energy boosters for today",
+    bg: '#e0eeff', border: '#85B7EB', text: '#0C447C', dot: '#185FA5',
+  }
+
+  if (m >= 4 && e >= 4) return {
+    tone: 'high',
+    message: "You're in the zone today! 🔥",
+    action: "Great day to push harder — add an extra set, go for a longer walk, or tick off every habit on the list.",
+    highlight: [], // all habits shine — no specific highlighting
+    highlightLabel: "",
+    bg: '#e8f5e0', border: '#97C459', text: '#27500A', dot: '#4a7c2f',
+  }
+
+  return {
+    tone: 'neutral',
+    message: "Steady day — stick to the plan.",
+    action: "Consistency on average days is what builds the habit. Complete your routine and keep the streak alive.",
+    highlight: [],
+    highlightLabel: "",
+    bg: '#f0f7e8', border: '#c0dd97', text: '#3B6D11', dot: '#639922',
+  }
+}
+
 export default function Dashboard() {
   const router = useRouter()
   const supabase = createClient()
@@ -76,7 +129,6 @@ export default function Dashboard() {
       if (!user) { router.push('/login'); return }
       const name = user.user_metadata?.full_name || user.email?.split('@')[0] || 'there'
       setUserName(name.split(' ')[0])
-
       const today = new Date().toISOString().split('T')[0]
       try {
         const [dailyRes, exerciseRes, habitRes, streakRes] = await Promise.all([
@@ -96,9 +148,7 @@ export default function Dashboard() {
         if (exercise.data?.completed_exercises) setCheckedEx(exercise.data.completed_exercises)
         if (habit.data?.checked_habits) setCheckedHabits(habit.data.checked_habits)
         if (streakData.data) setStreak(streakData.data.current_streak || 0)
-      } catch (e) {
-        console.log('Could not load saved data', e)
-      }
+      } catch (e) { console.log(e) }
     }
     init()
   }, [])
@@ -113,41 +163,35 @@ export default function Dashboard() {
     const w = updates.water ?? water
     const h = updates.habits ?? checkedHabits
     const ex = updates.exercises ?? checkedEx
-
     try {
       await Promise.all([
         fetch('/api/logs/daily', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ mood: m, energy: e, waterGlasses: w }),
         }),
         fetch('/api/logs/habits', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ checkedHabits: h }),
         }),
         fetch('/api/logs/exercise', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ dayIndex: currentDay, completedExercises: ex }),
         }),
       ])
       const habitsCount = Object.values(h).filter(Boolean).length
       if (habitsCount >= 3 || Object.values(ex).some(Boolean) || w >= 5 || m > 0) {
         const res = await fetch('/api/streak', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ habitsCompleted: habitsCount }),
         })
         const { data } = await res.json()
         if (data) setStreak(data.current_streak || 0)
       }
-    } catch (e) {
-      console.log('Save error', e)
-    }
+    } catch (e) { console.log(e) }
     setSaving(false)
   }, [mood, energy, water, checkedHabits, checkedEx, currentDay])
 
+  const rec = getRecommendation(mood, energy)
   const dayData = days[currentDay]
   const exDone = Object.values(checkedEx).filter(Boolean).length
   const exTotal = dayData.exercises.length
@@ -277,6 +321,24 @@ export default function Dashboard() {
             <span style={s({ fontSize: 10, color: '#7a7a72' })}>Energised</span>
           </div>
         </div>
+
+        {/* Recommendation banner — appears after mood + energy selected */}
+        {rec && (
+          <div style={s({
+            marginTop: 10, background: rec.bg,
+            border: `1px solid ${rec.border}`,
+            borderRadius: 14, padding: '14px 16px',
+            transition: 'all 0.3s',
+          })}>
+            <div style={s({ display: 'flex', alignItems: 'flex-start', gap: 10 })}>
+              <div style={s({ width: 8, height: 8, borderRadius: '50%', background: rec.dot, flexShrink: 0, marginTop: 5 })}/>
+              <div>
+                <div style={s({ fontSize: 13, fontWeight: 700, color: rec.text, marginBottom: 4 })}>{rec.message}</div>
+                <div style={s({ fontSize: 13, color: rec.text, lineHeight: 1.6, opacity: 0.85 })}>{rec.action}</div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Water */}
@@ -306,23 +368,41 @@ export default function Dashboard() {
 
       {/* Habits */}
       <div style={s({ margin: '16px 22px 0' })}>
-        <div style={s({ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: '#7a7a72', textTransform: 'uppercase', marginBottom: 10 })}>Daily habits</div>
-        <div style={s({ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 })}>
-          {habits.map((h, i) => (
-            <div key={i} onClick={() => {
-              const updated = { ...checkedHabits, [i]: !checkedHabits[i] }
-              setCheckedHabits(updated)
-              saveData({ habits: updated })
-            }} style={s({
-              background: checkedHabits[i] ? '#e8f5e0' : 'white',
-              border: `1.5px solid ${checkedHabits[i] ? '#7db84a' : '#e4e0d8'}`,
-              borderRadius: 14, padding: 14, cursor: 'pointer',
-            })}>
-              <div style={{ fontSize: 20, marginBottom: 6 }}>{h.icon}</div>
-              <div style={s({ fontSize: 13, fontWeight: 600, color: checkedHabits[i] ? '#4a7c2f' : '#3d3d3a' })}>{h.label}</div>
-              <div style={s({ fontSize: 11, color: '#7a7a72', marginTop: 2 })}>{h.sub}</div>
+        <div style={s({ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 })}>
+          <div style={s({ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: '#7a7a72', textTransform: 'uppercase' })}>Daily habits</div>
+          {rec && rec.highlight.length > 0 && (
+            <div style={s({ fontSize: 11, fontWeight: 600, color: rec.text, background: rec.bg, border: `1px solid ${rec.border}`, borderRadius: 20, padding: '3px 10px' })}>
+              {rec.highlightLabel}
             </div>
-          ))}
+          )}
+        </div>
+        <div style={s({ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 })}>
+          {habits.map((h, i) => {
+            const isHighlighted = rec && rec.highlight.includes(i)
+            return (
+              <div key={i} onClick={() => {
+                const updated = { ...checkedHabits, [i]: !checkedHabits[i] }
+                setCheckedHabits(updated)
+                saveData({ habits: updated })
+              }} style={s({
+                background: checkedHabits[i] ? '#e8f5e0' : isHighlighted ? rec!.bg : 'white',
+                border: `${isHighlighted && !checkedHabits[i] ? '2px' : '1.5px'} solid ${checkedHabits[i] ? '#7db84a' : isHighlighted ? rec!.border : '#e4e0d8'}`,
+                borderRadius: 14, padding: 14, cursor: 'pointer',
+                position: 'relative',
+              })}>
+                {isHighlighted && !checkedHabits[i] && (
+                  <div style={s({
+                    position: 'absolute', top: 8, right: 8,
+                    width: 8, height: 8, borderRadius: '50%',
+                    background: rec!.dot,
+                  })}/>
+                )}
+                <div style={{ fontSize: 20, marginBottom: 6 }}>{h.icon}</div>
+                <div style={s({ fontSize: 13, fontWeight: 600, color: checkedHabits[i] ? '#4a7c2f' : isHighlighted ? rec!.text : '#3d3d3a' })}>{h.label}</div>
+                <div style={s({ fontSize: 11, color: '#7a7a72', marginTop: 2 })}>{h.sub}</div>
+              </div>
+            )
+          })}
         </div>
       </div>
 
