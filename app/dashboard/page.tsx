@@ -56,6 +56,13 @@ const moods = [
   { e: '😊', l: 'Good' }, { e: '😄', l: 'Great' },
 ]
 
+function getGreeting() {
+  const h = new Date().getHours()
+  if (h < 12) return 'Good morning,'
+  if (h < 17) return 'Good afternoon,'
+  return 'Good evening,'
+}
+
 function getRecommendation(mood: number, energy: number) {
   if (mood === 0 && energy === 0) return null
   const m = mood || 3
@@ -227,23 +234,30 @@ export default function Dashboard() {
   const s = (obj: React.CSSProperties) => obj
 
   return (
-    <main style={s({ minHeight: '100vh', background: '#faf8f4', fontFamily: "'DM Sans', Arial, sans-serif", paddingBottom: 90 })}>
+    <main style={s({ minHeight: '100vh', background: '#faf8f4', fontFamily: "'DM Sans', Arial, sans-serif", paddingBottom: 100 })}>
 
-      <div style={s({ padding: '52px 22px 0' })}>
-        <div style={s({ fontSize: 12, color: '#7a7a72', fontWeight: 500 })}>Good morning,</div>
-        <div style={s({ fontSize: 24, fontWeight: 700, color: '#1a1a18', fontFamily: "'DM Serif Display', Georgia, serif", marginTop: 2 })}>
-          {userName} 👋
+      {/* Header */}
+      <div style={s({ padding: '52px 22px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' })}>
+        <div>
+          <div style={s({ fontSize: 12, color: '#7a7a72', fontWeight: 500 })}>{getGreeting()}</div>
+          <div style={s({ fontSize: 24, fontWeight: 700, color: '#1a1a18', fontFamily: "'DM Serif Display', Georgia, serif", marginTop: 2 })}>
+            {userName} 👋
+          </div>
+          <div style={s({ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 })}>
+            {streak > 0 && (
+              <div style={s({ display: 'inline-flex', alignItems: 'center', gap: 5, background: '#fff4e0', border: '1px solid #f5d58a', borderRadius: 30, padding: '4px 12px', fontSize: 12, fontWeight: 600, color: '#8a6200' })}>
+                🔥 {streak} day streak
+              </div>
+            )}
+            {saving && <div style={s({ fontSize: 11, color: '#7a7a72' })}>Saving...</div>}
+          </div>
         </div>
-        <div style={s({ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 })}>
-          {streak > 0 && (
-            <div style={s({ display: 'inline-flex', alignItems: 'center', gap: 5, background: '#fff4e0', border: '1px solid #f5d58a', borderRadius: 30, padding: '4px 12px', fontSize: 12, fontWeight: 600, color: '#8a6200' })}>
-              🔥 {streak} day streak
-            </div>
-          )}
-          {saving && <div style={s({ fontSize: 11, color: '#7a7a72' })}>Saving...</div>}
-        </div>
+        <button onClick={() => router.push('/dashboard/profile')} style={s({ width: 42, height: 42, borderRadius: '50%', background: '#1a1a18', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, marginTop: 8, flexShrink: 0 })}>
+          🌿
+        </button>
       </div>
 
+      {/* Hero card */}
       <div style={s({ margin: '16px 22px 0', background: '#1a1a18', borderRadius: 20, padding: 20, position: 'relative', overflow: 'hidden' })}>
         <div style={s({ position: 'absolute', width: 150, height: 150, borderRadius: '50%', background: '#7db84a', opacity: 0.08, top: -40, right: -40 })}/>
         <div style={s({ position: 'relative', zIndex: 1 })}>
@@ -265,6 +279,7 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Day selector */}
       <div style={s({ display: 'flex', gap: 6, padding: '16px 22px 0', overflowX: 'auto', scrollbarWidth: 'none' })}>
         {days.map((d, i) => (
           <button key={i} onClick={() => { setCurrentDay(i); setCheckedEx({}) }} style={s({
@@ -279,6 +294,7 @@ export default function Dashboard() {
         ))}
       </div>
 
+      {/* Exercises */}
       <div style={s({ margin: '16px 22px 0' })}>
         <div style={s({ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: '#7a7a72', textTransform: 'uppercase', marginBottom: 10 })}>Today's workout</div>
         <div style={s({ background: 'white', borderRadius: 14, border: '1px solid #e4e0d8', overflow: 'hidden' })}>
@@ -307,6 +323,7 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Mood */}
       <div style={s({ margin: '16px 22px 0' })}>
         <div style={s({ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: '#7a7a72', textTransform: 'uppercase', marginBottom: 10 })}>How are you feeling?</div>
         <div style={s({ background: 'white', borderRadius: 14, border: '1px solid #e4e0d8', padding: 16 })}>
@@ -350,6 +367,7 @@ export default function Dashboard() {
         )}
       </div>
 
+      {/* Water */}
       <div style={s({ margin: '16px 22px 0' })}>
         <div style={s({ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: '#7a7a72', textTransform: 'uppercase', marginBottom: 10 })}>Water intake</div>
 
@@ -420,6 +438,7 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Habits */}
       <div style={s({ margin: '16px 22px 0' })}>
         <div style={s({ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 })}>
           <div style={s({ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: '#7a7a72', textTransform: 'uppercase' })}>Daily habits</div>
@@ -454,12 +473,14 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Tip */}
       <div style={s({ margin: '16px 22px 20px', background: '#e1f5ee', borderLeft: '3px solid #5dcaa5', borderRadius: '0 12px 12px 0', padding: '12px 14px' })}>
         <div style={s({ fontSize: 13, color: '#085041', lineHeight: 1.6, fontStyle: 'italic' })}>
           Sleep alone fixes many issues: hormones, belly fat, eczema flare-ups, and stress. Aim for 7–8 hours.
         </div>
       </div>
 
+      {/* Bottom nav */}
       <div style={s({ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'white', borderTop: '1px solid #e4e0d8', display: 'flex', padding: '10px 0 20px', zIndex: 100 })}>
         {[
           { icon: '🏠', label: 'Today', path: '/dashboard', active: true },
