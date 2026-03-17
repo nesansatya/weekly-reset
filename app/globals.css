@@ -24,3 +24,11 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+::placeholder {
+  color: #9a9a92 !important;
+  opacity: 1 !important;
+}
+
+input {
+  color: #1a1a18 !important;
+}
