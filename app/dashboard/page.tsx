@@ -56,57 +56,51 @@ const moods = [
   { e: '😊', l: 'Good' }, { e: '😄', l: 'Great' },
 ]
 
-// Recommendations based on mood + energy combo
 function getRecommendation(mood: number, energy: number) {
   if (mood === 0 && energy === 0) return null
-
   const m = mood || 3
   const e = energy || 3
-
   if (m <= 2 && e <= 2) return {
-    tone: 'low',
     message: "Rough day — and that's completely okay.",
     action: "Skip the hard stuff today. One 10-min walk outside will shift your energy more than anything else right now.",
-    highlight: [0, 1, 5], // sunlight, water, sleep
+    highlight: [0, 1, 5],
     highlightLabel: "Focus on just these 3 today",
     bg: '#fde8e0', border: '#f0997b', text: '#712b13', dot: '#D85A30',
   }
-
   if (m <= 2 && e >= 3) return {
-    tone: 'low-mood',
     message: "Feeling down but your body has energy.",
     action: "Use that energy — move your body for 20 minutes. Physical activity is the fastest natural mood booster.",
-    highlight: [0, 2, 3], // sunlight, steps, meals
+    highlight: [0, 2, 3],
     highlightLabel: "These will lift your mood today",
     bg: '#fff4e0', border: '#f5d58a', text: '#633806', dot: '#BA7517',
   }
-
   if (m >= 3 && e <= 2) return {
-    tone: 'low-energy',
     message: "Good mindset, but your body needs fuel.",
     action: "Drink 500ml of water right now, eat a proper meal, and get to bed before midnight tonight.",
-    highlight: [1, 3, 5], // water, meals, sleep
+    highlight: [1, 3, 5],
     highlightLabel: "Your energy boosters for today",
     bg: '#e0eeff', border: '#85B7EB', text: '#0C447C', dot: '#185FA5',
   }
-
   if (m >= 4 && e >= 4) return {
-    tone: 'high',
     message: "You're in the zone today! 🔥",
     action: "Great day to push harder — add an extra set, go for a longer walk, or tick off every habit on the list.",
-    highlight: [], // all habits shine — no specific highlighting
+    highlight: [],
     highlightLabel: "",
     bg: '#e8f5e0', border: '#97C459', text: '#27500A', dot: '#4a7c2f',
   }
-
   return {
-    tone: 'neutral',
     message: "Steady day — stick to the plan.",
     action: "Consistency on average days is what builds the habit. Complete your routine and keep the streak alive.",
     highlight: [],
     highlightLabel: "",
     bg: '#f0f7e8', border: '#c0dd97', text: '#3B6D11', dot: '#639922',
   }
+}
+
+function calcWaterGoal(weightKg: number) {
+  const litres = weightKg * 0.033
+  const glasses = Math.round(litres / 0.25)
+  return { litres: Math.round(litres * 10) / 10, glasses: Math.max(6, Math.min(16, glasses)) }
 }
 
 export default function Dashboard() {
@@ -122,6 +116,10 @@ export default function Dashboard() {
   const [userName, setUserName] = useState('there')
   const [streak, setStreak] = useState(0)
   const [saving, setSaving] = useState(false)
+  const [weightKg, setWeightKg] = useState<number | null>(null)
+  const [showWeightPrompt, setShowWeightPrompt] = useState(false)
+  const [weightInput, setWeightInput] = useState('')
+  const [weightUnit, setWeightUnit] = useState<'kg' | 'lbs'>('kg')
 
   useEffect(() => {
     async function init() {
@@ -131,14 +129,15 @@ export default function Dashboard() {
       setUserName(name.split(' ')[0])
       const today = new Date().toISOString().split('T')[0]
       try {
-        const [dailyRes, exerciseRes, habitRes, streakRes] = await Promise.all([
+        const [dailyRes, exerciseRes, habitRes, streakRes, profileRes] = await Promise.all([
           fetch(`/api/logs/daily?date=${today}`),
           fetch(`/api/logs/exercise?date=${today}`),
           fetch(`/api/logs/habits?date=${today}`),
           fetch('/api/streak'),
+          fetch('/api/profile'),
         ])
-        const [daily, exercise, habit, streakData] = await Promise.all([
-          dailyRes.json(), exerciseRes.json(), habitRes.json(), streakRes.json()
+        const [daily, exercise, habit, streakData, profile] = await Promise.all([
+          dailyRes.json(), exerciseRes.json(), habitRes.json(), streakRes.json(), profileRes.json()
         ])
         if (daily.data) {
           setMood(daily.data.mood || 0)
@@ -148,10 +147,29 @@ export default function Dashboard() {
         if (exercise.data?.completed_exercises) setCheckedEx(exercise.data.completed_exercises)
         if (habit.data?.checked_habits) setCheckedHabits(habit.data.checked_habits)
         if (streakData.data) setStreak(streakData.data.current_streak || 0)
+        if (profile.data?.weight_kg) {
+          setWeightKg(profile.data.weight_kg)
+        } else {
+          setShowWeightPrompt(true)
+        }
       } catch (e) { console.log(e) }
     }
     init()
   }, [])
+
+  async function saveWeight() {
+    let kg = parseFloat(weightInput)
+    if (isNaN(kg) || kg <= 0) return
+    if (weightUnit === 'lbs') kg = Math.round(kg / 2.205 * 10) / 10
+    await fetch('/api/profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ weight_kg: kg }),
+    })
+    setWeightKg(kg)
+    setShowWeightPrompt(false)
+    setWeightInput('')
+  }
 
   const saveData = useCallback(async (updates: {
     mood?: number, energy?: number, water?: number,
@@ -196,6 +214,8 @@ export default function Dashboard() {
   const exDone = Object.values(checkedEx).filter(Boolean).length
   const exTotal = dayData.exercises.length
   const pct = exTotal > 0 ? Math.round(exDone / exTotal * 100) : 0
+  const waterGoal = weightKg ? calcWaterGoal(weightKg) : { litres: 2.5, glasses: 10 }
+  const lbsDisplay = weightKg ? Math.round(weightKg * 2.205) : null
 
   const s = (obj: React.CSSProperties) => obj
 
@@ -291,10 +311,7 @@ export default function Dashboard() {
           <div style={s({ fontSize: 12, fontWeight: 600, color: '#3d3d3a', marginBottom: 10 })}>Mood</div>
           <div style={s({ display: 'flex', justifyContent: 'space-between', marginBottom: 16 })}>
             {moods.map((m, i) => (
-              <button key={i} onClick={() => {
-                setMood(i + 1)
-                saveData({ mood: i + 1 })
-              }} style={s({
+              <button key={i} onClick={() => { setMood(i + 1); saveData({ mood: i + 1 }) }} style={s({
                 flex: 1, padding: '8px 4px', borderRadius: 10, cursor: 'pointer',
                 border: `1px solid ${mood === i + 1 ? '#7db84a' : '#e4e0d8'}`,
                 background: mood === i + 1 ? '#e8f5e0' : 'white', textAlign: 'center',
@@ -307,10 +324,7 @@ export default function Dashboard() {
           <div style={s({ fontSize: 12, fontWeight: 600, color: '#3d3d3a', marginBottom: 8 })}>Energy level</div>
           <div style={s({ display: 'flex', gap: 6 })}>
             {[1,2,3,4,5].map(i => (
-              <div key={i} onClick={() => {
-                setEnergy(i)
-                saveData({ energy: i })
-              }} style={s({
+              <div key={i} onClick={() => { setEnergy(i); saveData({ energy: i }) }} style={s({
                 flex: 1, height: 6, borderRadius: 4, cursor: 'pointer',
                 background: energy >= i ? '#4a7c2f' : '#f0ece4',
               })}/>
@@ -322,14 +336,9 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Recommendation banner — appears after mood + energy selected */}
+        {/* Recommendation banner */}
         {rec && (
-          <div style={s({
-            marginTop: 10, background: rec.bg,
-            border: `1px solid ${rec.border}`,
-            borderRadius: 14, padding: '14px 16px',
-            transition: 'all 0.3s',
-          })}>
+          <div style={s({ marginTop: 10, background: rec.bg, border: `1px solid ${rec.border}`, borderRadius: 14, padding: '14px 16px' })}>
             <div style={s({ display: 'flex', alignItems: 'flex-start', gap: 10 })}>
               <div style={s({ width: 8, height: 8, borderRadius: '50%', background: rec.dot, flexShrink: 0, marginTop: 5 })}/>
               <div>
@@ -344,13 +353,56 @@ export default function Dashboard() {
       {/* Water */}
       <div style={s({ margin: '16px 22px 0' })}>
         <div style={s({ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: '#7a7a72', textTransform: 'uppercase', marginBottom: 10 })}>Water intake</div>
+
+        {/* Weight prompt */}
+        {showWeightPrompt && (
+          <div style={s({ background: '#e8f5e0', border: '1px solid #97C459', borderRadius: 14, padding: 16, marginBottom: 10 })}>
+            <div style={s({ fontSize: 13, fontWeight: 700, color: '#27500A', marginBottom: 4 })}>Personalise your water goal 💧</div>
+            <div style={s({ fontSize: 12, color: '#3B6D11', marginBottom: 12 })}>Enter your weight to calculate your exact daily water need.</div>
+            <div style={s({ display: 'flex', gap: 8, marginBottom: 10 })}>
+              <button onClick={() => setWeightUnit('kg')} style={s({ padding: '6px 16px', borderRadius: 20, border: `1.5px solid ${weightUnit === 'kg' ? '#4a7c2f' : '#c0dd97'}`, background: weightUnit === 'kg' ? '#4a7c2f' : 'white', color: weightUnit === 'kg' ? 'white' : '#4a7c2f', fontSize: 12, fontWeight: 600, cursor: 'pointer' })}>kg</button>
+              <button onClick={() => setWeightUnit('lbs')} style={s({ padding: '6px 16px', borderRadius: 20, border: `1.5px solid ${weightUnit === 'lbs' ? '#4a7c2f' : '#c0dd97'}`, background: weightUnit === 'lbs' ? '#4a7c2f' : 'white', color: weightUnit === 'lbs' ? 'white' : '#4a7c2f', fontSize: 12, fontWeight: 600, cursor: 'pointer' })}>lbs</button>
+            </div>
+            <div style={s({ display: 'flex', gap: 8 })}>
+              <input
+                type="number"
+                placeholder={weightUnit === 'kg' ? 'e.g. 70' : 'e.g. 154'}
+                value={weightInput}
+                onChange={e => setWeightInput(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && saveWeight()}
+                style={s({ flex: 1, padding: '10px 12px', border: '1.5px solid #97C459', borderRadius: 8, fontSize: 14, color: '#1a1a18', background: 'white', outline: 'none' })}
+              />
+              <button onClick={saveWeight} style={s({ padding: '10px 20px', background: '#4a7c2f', color: 'white', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer' })}>Save</button>
+            </div>
+            {weightInput && !isNaN(parseFloat(weightInput)) && (
+              <div style={s({ marginTop: 8, fontSize: 12, color: '#3B6D11' })}>
+                {weightUnit === 'kg'
+                  ? `${weightInput} kg = ${Math.round(parseFloat(weightInput) * 2.205)} lbs → daily goal: ${Math.round(parseFloat(weightInput) * 0.033 * 10) / 10}L`
+                  : `${weightInput} lbs = ${Math.round(parseFloat(weightInput) / 2.205 * 10) / 10} kg → daily goal: ${Math.round(parseFloat(weightInput) / 2.205 * 0.033 * 10) / 10}L`
+                }
+              </div>
+            )}
+          </div>
+        )}
+
         <div style={s({ background: 'white', borderRadius: 14, border: '1px solid #e4e0d8', padding: 16 })}>
           <div style={s({ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 })}>
-            <div style={s({ fontSize: 12, fontWeight: 600, color: '#3d3d3a' })}>Goal: 2.5–3L</div>
-            <div style={s({ background: '#e8f5e0', color: '#4a7c2f', borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 600 })}>{water} / 10 glasses</div>
+            <div>
+              <div style={s({ fontSize: 12, fontWeight: 600, color: '#3d3d3a' })}>
+                Goal: {waterGoal.litres}L
+                {weightKg && <span style={s({ fontSize: 11, color: '#7a7a72', fontWeight: 400 })}> · based on {weightKg}kg{lbsDisplay ? ` / ${lbsDisplay}lbs` : ''}</span>}
+              </div>
+              {!weightKg && <div style={s({ fontSize: 11, color: '#7a7a72' })}>Set your weight above for a personalised goal</div>}
+            </div>
+            <div style={s({ display: 'flex', alignItems: 'center', gap: 6 })}>
+              <div style={s({ background: '#e8f5e0', color: '#4a7c2f', borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 600 })}>{water} / {waterGoal.glasses}</div>
+              {weightKg && (
+                <button onClick={() => setShowWeightPrompt(!showWeightPrompt)} style={s({ background: 'none', border: 'none', fontSize: 16, cursor: 'pointer', color: '#7a7a72' })}>⚙️</button>
+              )}
+            </div>
           </div>
           <div style={s({ display: 'flex', gap: 7, flexWrap: 'wrap' })}>
-            {Array.from({ length: 10 }, (_, i) => (
+            {Array.from({ length: waterGoal.glasses }, (_, i) => (
               <div key={i} onClick={() => {
                 const newW = i < water ? i : i + 1
                 setWater(newW)
@@ -387,15 +439,10 @@ export default function Dashboard() {
               }} style={s({
                 background: checkedHabits[i] ? '#e8f5e0' : isHighlighted ? rec!.bg : 'white',
                 border: `${isHighlighted && !checkedHabits[i] ? '2px' : '1.5px'} solid ${checkedHabits[i] ? '#7db84a' : isHighlighted ? rec!.border : '#e4e0d8'}`,
-                borderRadius: 14, padding: 14, cursor: 'pointer',
-                position: 'relative',
+                borderRadius: 14, padding: 14, cursor: 'pointer', position: 'relative',
               })}>
                 {isHighlighted && !checkedHabits[i] && (
-                  <div style={s({
-                    position: 'absolute', top: 8, right: 8,
-                    width: 8, height: 8, borderRadius: '50%',
-                    background: rec!.dot,
-                  })}/>
+                  <div style={s({ position: 'absolute', top: 8, right: 8, width: 8, height: 8, borderRadius: '50%', background: rec!.dot })}/>
                 )}
                 <div style={{ fontSize: 20, marginBottom: 6 }}>{h.icon}</div>
                 <div style={s({ fontSize: 13, fontWeight: 600, color: checkedHabits[i] ? '#4a7c2f' : isHighlighted ? rec!.text : '#3d3d3a' })}>{h.label}</div>
@@ -423,8 +470,7 @@ export default function Dashboard() {
         ].map(n => (
           <button key={n.label} onClick={() => router.push(n.path)} style={s({
             flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
-            gap: 3, cursor: 'pointer', padding: '6px 0',
-            background: 'none', border: 'none',
+            gap: 3, cursor: 'pointer', padding: '6px 0', background: 'none', border: 'none',
           })}>
             <div style={{ fontSize: 18 }}>{n.icon}</div>
             <div style={s({ fontSize: 10, fontWeight: n.active ? 700 : 500, color: n.active ? '#4a7c2f' : '#7a7a72', fontFamily: "'DM Sans', Arial, sans-serif" })}>{n.label}</div>
