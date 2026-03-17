@@ -9,6 +9,17 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+function getPeriodEnd(sub: Stripe.Subscription): string | null {
+  try {
+    const raw = (sub as any).current_period_end
+    if (!raw) return null
+    const ms = typeof raw === 'number' ? raw * 1000 : new Date(raw).getTime()
+    const d = new Date(ms)
+    if (isNaN(d.getTime())) return null
+    return d.toISOString()
+  } catch { return null }
+}
+
 export async function POST(request: Request) {
   const body = await request.text()
   const sig = request.headers.get('stripe-signature')!
@@ -25,40 +36,48 @@ export async function POST(request: Request) {
       const session = event.data.object as Stripe.Checkout.Session
       const userId = session.metadata?.supabase_user_id
       if (userId && session.subscription) {
-        const sub = await stripe.subscriptions.retrieve(session.subscription as string)
-        await supabase.from('users').update({
-          is_pro: true,
-          stripe_subscription_id: sub.id,
-          subscription_status: 'pro',
-          subscription_period_end: new Date((sub as any).current_period_end * 1000).toISOString(),
-        }).eq('id', userId)
+        try {
+          const sub = await stripe.subscriptions.retrieve(session.subscription as string)
+          const periodEnd = getPeriodEnd(sub)
+          await supabase.from('users').update({
+            is_pro: true,
+            stripe_subscription_id: sub.id,
+            subscription_status: 'pro',
+            subscription_period_end: periodEnd,
+          }).eq('id', userId)
+        } catch (e) { console.error('checkout error:', e) }
       }
       break
     }
     case 'customer.subscription.updated': {
       const sub = event.data.object as Stripe.Subscription
-      const customer = await stripe.customers.retrieve(sub.customer as string)
-      if ('metadata' in customer && customer.metadata.supabase_user_id) {
-        const isPro = sub.status === 'active'
-        await supabase.from('users').update({
-          is_pro: isPro,
-          subscription_status: isPro ? 'pro' : 'free',
-          subscription_period_end: new Date((sub as any).current_period_end * 1000).toISOString(),
-        }).eq('id', customer.metadata.supabase_user_id)
-      }
+      try {
+        const customer = await stripe.customers.retrieve(sub.customer as string)
+        if ('metadata' in customer && customer.metadata.supabase_user_id) {
+          const isPro = sub.status === 'active'
+          const periodEnd = getPeriodEnd(sub)
+          await supabase.from('users').update({
+            is_pro: isPro,
+            subscription_status: isPro ? 'pro' : 'free',
+            subscription_period_end: periodEnd,
+          }).eq('id', customer.metadata.supabase_user_id)
+        }
+      } catch (e) { console.error('subscription updated error:', e) }
       break
     }
     case 'customer.subscription.deleted': {
       const sub = event.data.object as Stripe.Subscription
-      const customer = await stripe.customers.retrieve(sub.customer as string)
-      if ('metadata' in customer && customer.metadata.supabase_user_id) {
-        await supabase.from('users').update({
-          is_pro: false,
-          subscription_status: 'free',
-          stripe_subscription_id: null,
-          subscription_period_end: null,
-        }).eq('id', customer.metadata.supabase_user_id)
-      }
+      try {
+        const customer = await stripe.customers.retrieve(sub.customer as string)
+        if ('metadata' in customer && customer.metadata.supabase_user_id) {
+          await supabase.from('users').update({
+            is_pro: false,
+            subscription_status: 'free',
+            stripe_subscription_id: null,
+            subscription_period_end: null,
+          }).eq('id', customer.metadata.supabase_user_id)
+        }
+      } catch (e) { console.error('subscription deleted error:', e) }
       break
     }
   }
