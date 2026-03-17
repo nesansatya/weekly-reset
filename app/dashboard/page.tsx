@@ -391,7 +391,7 @@ export default function Dashboard() {
                 Goal: {waterGoal.litres}L
                 {weightKg && <span style={s({ fontSize: 11, color: '#7a7a72', fontWeight: 400 })}> · based on {weightKg}kg{lbsDisplay ? ` / ${lbsDisplay}lbs` : ''}</span>}
               </div>
-              {!weightKg && <div style={s({ fontSize: 11, color: '#7a7a72', marginTop: 2 })}>Set your weight above for a personalised goal</div>}
+              {!weightKg && <div style={s({ fontSize: 11, color: '#7a7a72', marginTop: 2 })}>Each 💧 = 250ml · ${waterGoal.glasses} glasses to reach your goal</div>}
             </div>
             <div style={s({ display: 'flex', alignItems: 'center', gap: 6 })}>
               <div style={s({ background: '#e8f5e0', color: '#4a7c2f', borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 600 })}>{water} / {waterGoal.glasses}</div>
