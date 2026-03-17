@@ -1,65 +1,176 @@
-import Image from "next/image";
+'use client'
+import { useState } from 'react'
+import { createClient } from './lib/supabase/client'
 
 export default function Home() {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [name, setName] = useState('')
+  const [status, setStatus] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [dbStatus, setDbStatus] = useState('')
+
+  const supabase = createClient()
+
+  async function testConnection() {
+    setDbStatus('Testing...')
+    const { error } = await supabase.from('users').select('count').limit(1)
+    if (error) {
+      setDbStatus('❌ Connection failed: ' + error.message)
+    } else {
+      setDbStatus('✅ Supabase connected successfully!')
+    }
+  }
+
+  async function handleSignup() {
+    setLoading(true)
+    setStatus('')
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name: name } }
+    })
+    if (error) {
+      setStatus('❌ ' + error.message)
+    } else {
+      setStatus('✅ Account created! Check your email to confirm.')
+    }
+    setLoading(false)
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <main style={{
+      minHeight: '100vh',
+      background: '#faf8f4',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontFamily: 'system-ui, sans-serif',
+      padding: '2rem'
+    }}>
+      <div style={{ maxWidth: 400, width: '100%' }}>
+
+        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          <div style={{ fontSize: 40, marginBottom: 8 }}>🌿</div>
+          <h1 style={{ fontSize: 28, fontWeight: 700, color: '#1a1a18', marginBottom: 4 }}>
+            Weekly Reset
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p style={{ color: '#7a7a72', fontSize: 14 }}>
+            Trial run — testing the full stack
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        <div style={{
+          background: 'white',
+          borderRadius: 16,
+          padding: '1.5rem',
+          border: '1px solid #e4e0d8',
+          marginBottom: '1rem'
+        }}>
+          <h2 style={{ fontSize: 14, fontWeight: 600, color: '#3d3d3a', marginBottom: 12 }}>
+            1. Test Supabase connection
+          </h2>
+          <button
+            onClick={testConnection}
+            style={{
+              width: '100%',
+              padding: '10px',
+              background: '#1a1a18',
+              color: 'white',
+              border: 'none',
+              borderRadius: 8,
+              fontSize: 14,
+              cursor: 'pointer',
+              marginBottom: 8
+            }}>
+            Test database connection
+          </button>
+          {dbStatus && (
+            <p style={{ fontSize: 13, color: '#4a7c2f', margin: 0 }}>{dbStatus}</p>
+          )}
         </div>
-      </main>
-    </div>
-  );
+
+        <div style={{
+          background: 'white',
+          borderRadius: 16,
+          padding: '1.5rem',
+          border: '1px solid #e4e0d8'
+        }}>
+          <h2 style={{ fontSize: 14, fontWeight: 600, color: '#3d3d3a', marginBottom: 12 }}>
+            2. Test signup
+          </h2>
+          <input
+            type="text"
+            placeholder="Your name"
+            value={name}
+            onChange={e => setName(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '10px 12px',
+              border: '1px solid #e4e0d8',
+              borderRadius: 8,
+              fontSize: 14,
+              marginBottom: 8,
+              boxSizing: 'border-box'
+            }}
+          />
+          <input
+            type="email"
+            placeholder="Email address"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '10px 12px',
+              border: '1px solid #e4e0d8',
+              borderRadius: 8,
+              fontSize: 14,
+              marginBottom: 8,
+              boxSizing: 'border-box'
+            }}
+          />
+          <input
+            type="password"
+            placeholder="Password (min 6 chars)"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '10px 12px',
+              border: '1px solid #e4e0d8',
+              borderRadius: 8,
+              fontSize: 14,
+              marginBottom: 12,
+              boxSizing: 'border-box'
+            }}
+          />
+          <button
+            onClick={handleSignup}
+            disabled={loading}
+            style={{
+              width: '100%',
+              padding: '10px',
+              background: '#4a7c2f',
+              color: 'white',
+              border: 'none',
+              borderRadius: 8,
+              fontSize: 14,
+              cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading ? 0.7 : 1,
+              marginBottom: 8
+            }}>
+            {loading ? 'Creating account...' : 'Create test account'}
+          </button>
+          {status && (
+            <p style={{ fontSize: 13, color: '#4a7c2f', margin: 0 }}>{status}</p>
+          )}
+        </div>
+
+        <p style={{ textAlign: 'center', fontSize: 12, color: '#7a7a72', marginTop: 16 }}>
+          Infrastructure: Next.js + Supabase + Vercel ✓
+        </p>
+      </div>
+    </main>
+  )
 }
