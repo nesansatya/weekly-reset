@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '../lib/supabase/client'
 
@@ -68,14 +68,85 @@ export default function Dashboard() {
   const [energy, setEnergy] = useState(0)
   const [userName, setUserName] = useState('there')
   const [streak, setStreak] = useState(0)
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) { router.push('/login'); return }
-      const name = data.user.user_metadata?.full_name || data.user.email?.split('@')[0] || 'there'
+    async function init() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { router.push('/login'); return }
+      const name = user.user_metadata?.full_name || user.email?.split('@')[0] || 'there'
       setUserName(name.split(' ')[0])
-    })
+
+      const today = new Date().toISOString().split('T')[0]
+      try {
+        const [dailyRes, exerciseRes, habitRes, streakRes] = await Promise.all([
+          fetch(`/api/logs/daily?date=${today}`),
+          fetch(`/api/logs/exercise?date=${today}`),
+          fetch(`/api/logs/habits?date=${today}`),
+          fetch('/api/streak'),
+        ])
+        const [daily, exercise, habit, streakData] = await Promise.all([
+          dailyRes.json(), exerciseRes.json(), habitRes.json(), streakRes.json()
+        ])
+        if (daily.data) {
+          setMood(daily.data.mood || 0)
+          setEnergy(daily.data.energy || 0)
+          setWater(daily.data.water_glasses || 0)
+        }
+        if (exercise.data?.completed_exercises) setCheckedEx(exercise.data.completed_exercises)
+        if (habit.data?.checked_habits) setCheckedHabits(habit.data.checked_habits)
+        if (streakData.data) setStreak(streakData.data.current_streak || 0)
+      } catch (e) {
+        console.log('Could not load saved data', e)
+      }
+    }
+    init()
   }, [])
+
+  const saveData = useCallback(async (updates: {
+    mood?: number, energy?: number, water?: number,
+    habits?: Record<number, boolean>, exercises?: Record<number, boolean>
+  }) => {
+    setSaving(true)
+    const m = updates.mood ?? mood
+    const e = updates.energy ?? energy
+    const w = updates.water ?? water
+    const h = updates.habits ?? checkedHabits
+    const ex = updates.exercises ?? checkedEx
+
+    try {
+      await Promise.all([
+        fetch('/api/logs/daily', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mood: m, energy: e, waterGlasses: w }),
+        }),
+        fetch('/api/logs/habits', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ checkedHabits: h }),
+        }),
+        fetch('/api/logs/exercise', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ dayIndex: currentDay, completedExercises: ex }),
+        }),
+      ])
+      const habitsCount = Object.values(h).filter(Boolean).length
+      if (habitsCount >= 3 || Object.values(ex).some(Boolean) || w >= 5 || m > 0) {
+        const res = await fetch('/api/streak', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ habitsCompleted: habitsCount }),
+        })
+        const { data } = await res.json()
+        if (data) setStreak(data.current_streak || 0)
+      }
+    } catch (e) {
+      console.log('Save error', e)
+    }
+    setSaving(false)
+  }, [mood, energy, water, checkedHabits, checkedEx, currentDay])
 
   const dayData = days[currentDay]
   const exDone = Object.values(checkedEx).filter(Boolean).length
@@ -93,11 +164,14 @@ export default function Dashboard() {
         <div style={s({ fontSize: 24, fontWeight: 700, color: '#1a1a18', fontFamily: "'DM Serif Display', Georgia, serif", marginTop: 2 })}>
           {userName} 👋
         </div>
-        {streak > 0 && (
-          <div style={s({ display: 'inline-flex', alignItems: 'center', gap: 5, background: '#fff4e0', border: '1px solid #f5d58a', borderRadius: 30, padding: '4px 12px', fontSize: 12, fontWeight: 600, color: '#8a6200', marginTop: 8 })}>
-            🔥 {streak} day streak
-          </div>
-        )}
+        <div style={s({ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 })}>
+          {streak > 0 && (
+            <div style={s({ display: 'inline-flex', alignItems: 'center', gap: 5, background: '#fff4e0', border: '1px solid #f5d58a', borderRadius: 30, padding: '4px 12px', fontSize: 12, fontWeight: 600, color: '#8a6200' })}>
+              🔥 {streak} day streak
+            </div>
+          )}
+          {saving && <div style={s({ fontSize: 11, color: '#7a7a72' })}>Saving...</div>}
+        </div>
       </div>
 
       {/* Hero card */}
@@ -126,8 +200,10 @@ export default function Dashboard() {
       <div style={s({ display: 'flex', gap: 6, padding: '16px 22px 0', overflowX: 'auto', scrollbarWidth: 'none' })}>
         {days.map((d, i) => (
           <button key={i} onClick={() => { setCurrentDay(i); setCheckedEx({}) }} style={s({
-            padding: '8px 6px', minWidth: 44, borderRadius: 10, border: `1px solid ${i === currentDay ? '#7db84a' : '#e4e0d8'}`,
-            background: i === currentDay ? '#e8f5e0' : 'white', cursor: 'pointer', textAlign: 'center', flexShrink: 0,
+            padding: '8px 6px', minWidth: 44, borderRadius: 10,
+            border: `1px solid ${i === currentDay ? '#7db84a' : '#e4e0d8'}`,
+            background: i === currentDay ? '#e8f5e0' : 'white',
+            cursor: 'pointer', textAlign: 'center', flexShrink: 0,
           })}>
             <div style={s({ fontSize: 10, color: i === currentDay ? '#4a7c2f' : '#7a7a72', fontWeight: 600 })}>{d.name.slice(0, 3)}</div>
             <div style={s({ fontSize: 9, color: i === currentDay ? '#4a7c2f' : '#9a9a92', marginTop: 2, fontWeight: 500 })}>{d.type.slice(0, 3)}</div>
@@ -140,9 +216,14 @@ export default function Dashboard() {
         <div style={s({ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: '#7a7a72', textTransform: 'uppercase', marginBottom: 10 })}>Today's workout</div>
         <div style={s({ background: 'white', borderRadius: 14, border: '1px solid #e4e0d8', overflow: 'hidden' })}>
           {dayData.exercises.map((ex, i) => (
-            <div key={i} onClick={() => setCheckedEx(p => ({ ...p, [i]: !p[i] }))} style={s({
+            <div key={i} onClick={() => {
+              const updated = { ...checkedEx, [i]: !checkedEx[i] }
+              setCheckedEx(updated)
+              saveData({ exercises: updated })
+            }} style={s({
               display: 'flex', alignItems: 'center', gap: 12, padding: '13px 16px',
-              borderBottom: i < dayData.exercises.length - 1 ? '1px solid #f5f2ec' : 'none', cursor: 'pointer',
+              borderBottom: i < dayData.exercises.length - 1 ? '1px solid #f5f2ec' : 'none',
+              cursor: 'pointer',
             })}>
               <div style={s({
                 width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
@@ -166,7 +247,10 @@ export default function Dashboard() {
           <div style={s({ fontSize: 12, fontWeight: 600, color: '#3d3d3a', marginBottom: 10 })}>Mood</div>
           <div style={s({ display: 'flex', justifyContent: 'space-between', marginBottom: 16 })}>
             {moods.map((m, i) => (
-              <button key={i} onClick={() => setMood(i + 1)} style={s({
+              <button key={i} onClick={() => {
+                setMood(i + 1)
+                saveData({ mood: i + 1 })
+              }} style={s({
                 flex: 1, padding: '8px 4px', borderRadius: 10, cursor: 'pointer',
                 border: `1px solid ${mood === i + 1 ? '#7db84a' : '#e4e0d8'}`,
                 background: mood === i + 1 ? '#e8f5e0' : 'white', textAlign: 'center',
@@ -179,7 +263,10 @@ export default function Dashboard() {
           <div style={s({ fontSize: 12, fontWeight: 600, color: '#3d3d3a', marginBottom: 8 })}>Energy level</div>
           <div style={s({ display: 'flex', gap: 6 })}>
             {[1,2,3,4,5].map(i => (
-              <div key={i} onClick={() => setEnergy(i)} style={s({
+              <div key={i} onClick={() => {
+                setEnergy(i)
+                saveData({ energy: i })
+              }} style={s({
                 flex: 1, height: 6, borderRadius: 4, cursor: 'pointer',
                 background: energy >= i ? '#4a7c2f' : '#f0ece4',
               })}/>
@@ -202,7 +289,11 @@ export default function Dashboard() {
           </div>
           <div style={s({ display: 'flex', gap: 7, flexWrap: 'wrap' })}>
             {Array.from({ length: 10 }, (_, i) => (
-              <div key={i} onClick={() => setWater(i < water ? i : i + 1)} style={s({
+              <div key={i} onClick={() => {
+                const newW = i < water ? i : i + 1
+                setWater(newW)
+                saveData({ water: newW })
+              }} style={s({
                 width: 34, height: 34, borderRadius: 8, cursor: 'pointer',
                 border: `1.5px solid ${i < water ? '#93c5fd' : '#e4e0d8'}`,
                 background: i < water ? '#dbeeff' : '#f9f7f3',
@@ -218,7 +309,11 @@ export default function Dashboard() {
         <div style={s({ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: '#7a7a72', textTransform: 'uppercase', marginBottom: 10 })}>Daily habits</div>
         <div style={s({ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 })}>
           {habits.map((h, i) => (
-            <div key={i} onClick={() => setCheckedHabits(p => ({ ...p, [i]: !p[i] }))} style={s({
+            <div key={i} onClick={() => {
+              const updated = { ...checkedHabits, [i]: !checkedHabits[i] }
+              setCheckedHabits(updated)
+              saveData({ habits: updated })
+            }} style={s({
               background: checkedHabits[i] ? '#e8f5e0' : 'white',
               border: `1.5px solid ${checkedHabits[i] ? '#7db84a' : '#e4e0d8'}`,
               borderRadius: 14, padding: 14, cursor: 'pointer',
