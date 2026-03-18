@@ -105,7 +105,7 @@ export default function Summary() {
 
       <div style={s({ padding: '52px 22px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' })}>
         <div>
-          <div style={s({ fontSize: 24, fontWeight: 700, color: '#1a1a18', fontFamily: "'DM Serif Display', Georgia, serif" })}>This week</div>
+          <button onClick={() => router.push('/dashboard/checkin')} style={s({ fontSize: 11, fontWeight: 600, color: '#4a7c2f', background: '#e8f5e0', border: 'none', borderRadius: 20, padding: '4px 10px', cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif", marginTop: 8, display: 'inline-block' })}>✦ AI Check-in</button>
           <div style={s({ fontSize: 12, color: '#7a7a72', marginTop: 2 })}>
             {new Date().toLocaleDateString('en-MY', { day: 'numeric', month: 'long', year: 'numeric' })}
           </div>
