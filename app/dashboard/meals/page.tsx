@@ -1,8 +1,6 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useRouter } from 'next/navigation'
-
 const meals = [
   {
     time: 'Breakfast', hour: '7–9 am',
@@ -43,7 +41,7 @@ const s = (o: React.CSSProperties) => o
 
 export default function Meals() {
   const router = useRouter()
-  const [active, setActive] = useState(0)
+const [active, setActive] = useState(0)
   const meal = meals[active]
 
   return (
