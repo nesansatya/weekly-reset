@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 
 const meals = [
   {
@@ -49,7 +50,10 @@ export default function Meals() {
     <main style={s({ minHeight: '100vh', background: '#faf8f4', fontFamily: "'DM Sans', Arial, sans-serif", paddingBottom: 100 })}>
 
       <div style={s({ padding: '52px 22px 0' })}>
-        <div style={s({ fontSize: 24, fontWeight: 700, color: '#1a1a18', fontFamily: "'DM Serif Display', Georgia, serif" })}>Meal guide</div>
+        <div style={s({ display: 'flex', justifyContent: 'space-between', alignItems: 'center' })}>
+  <div style={s({ fontSize: 24, fontWeight: 700, color: '#1a1a18', fontFamily: "'DM Serif Display', Georgia, serif" })}>Meal guide</div>
+  <button onClick={() => router.push('/dashboard/meal-plan')} style={s({ fontSize: 11, fontWeight: 600, color: '#4a7c2f', background: '#e8f5e0', border: 'none', borderRadius: 20, padding: '4px 10px', cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif" })}>✦ My plan</button>
+</div>
       </div>
 
       {/* Tabs */}
