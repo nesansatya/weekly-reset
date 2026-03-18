@@ -39,7 +39,10 @@ export default function Progress() {
 
       <div style={s({ padding: '52px 22px 0' })}>
         <div style={s({ fontSize: 24, fontWeight: 700, color: '#1a1a18', fontFamily: "'DM Serif Display', Georgia, serif" })}>Your progress</div>
-        <div style={s({ fontSize: 13, color: '#7a7a72', marginTop: 4 })}>All-time stats</div>
+        <div style={s({ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 })}>
+  <div style={s({ fontSize: 13, color: '#7a7a72' })}>All-time stats</div>
+  <button onClick={() => router.push('/dashboard/history')} style={s({ fontSize: 11, fontWeight: 600, color: '#4a7c2f', background: '#e8f5e0', border: 'none', borderRadius: 20, padding: '4px 10px', cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif" })}>✦ Full history</button>
+</div>
       </div>
 
       {loading ? (
