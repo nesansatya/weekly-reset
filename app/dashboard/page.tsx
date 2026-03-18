@@ -296,7 +296,12 @@ export default function Dashboard() {
 
       {/* Exercises */}
       <div style={s({ margin: '16px 22px 0' })}>
-        <div style={s({ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: '#7a7a72', textTransform: 'uppercase', marginBottom: 10 })}>Today's workout</div>
+        <div style={s({ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 })}>
+  <div style={s({ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: '#7a7a72', textTransform: 'uppercase' })}>Today's workout</div>
+  <button onClick={() => router.push('/dashboard/workout')} style={s({ fontSize: 11, fontWeight: 600, color: '#4a7c2f', background: '#e8f5e0', border: 'none', borderRadius: 20, padding: '4px 10px', cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif" })}>
+    ✦ Customise
+  </button>
+</div>
         <div style={s({ background: 'white', borderRadius: 14, border: '1px solid #e4e0d8', overflow: 'hidden' })}>
           {dayData.exercises.map((ex, i) => (
             <div key={i} onClick={() => {
