@@ -247,6 +247,7 @@ export default function Dashboard() {
       <div style={s({
         padding: '16px 22px 0',
         paddingTop: 'calc(env(safe-area-inset-top) + 16px)',
+        background: '#d4cfc4',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'flex-start',

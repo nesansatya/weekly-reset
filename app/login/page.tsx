@@ -34,9 +34,10 @@ export default function LoginPage() {
 
   return (
     <main style={{
-      minHeight: '100vh', background: '#faf8f4',
+      minHeight: '100dvh', background: '#faf8f4',
       display: 'flex', alignItems: 'center',
       justifyContent: 'center', padding: '2rem',
+      paddingTop: 'calc(env(safe-area-inset-top) + 2rem)',
       fontFamily: "'DM Sans', Arial, sans-serif",
     }}>
       <div style={{ width: '100%', maxWidth: 380 }}>

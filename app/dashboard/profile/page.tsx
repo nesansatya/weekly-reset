@@ -92,7 +92,7 @@ export default function ProfilePage() {
       <div style={s({
         padding: '16px 22px 16px',
         paddingTop: 'calc(env(safe-area-inset-top) + 16px)',
-        background: '#f0ede6',
+        background: '#d4cfc4',
         display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
       })}>
         <div>

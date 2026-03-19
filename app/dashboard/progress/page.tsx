@@ -40,7 +40,7 @@ export default function Progress() {
       <div style={s({
         padding: '16px 22px 16px',
         paddingTop: 'calc(env(safe-area-inset-top) + 16px)',
-        background: '#f0ede6',
+        background: '#d4cfc4',
       })}>
         <div style={s({ fontSize: 24, fontWeight: 700, color: '#1a1a18', fontFamily: "'DM Serif Display', Georgia, serif" })}>Your progress</div>
         <div style={s({ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 })}>
