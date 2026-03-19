@@ -182,6 +182,19 @@ function QuoteBanner() {
   )
 }
 
+async function fetchWithTimeout(url: string, options?: RequestInit, ms = 8000) {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), ms)
+  try {
+    const res = await fetch(url, { ...options, signal: controller.signal })
+    clearTimeout(timer)
+    return res
+  } catch (e) {
+    clearTimeout(timer)
+    throw e
+  }
+}
+
 function calcWaterGoal(weightKg: number) {
   const litres = weightKg * 0.033
   const glasses = Math.round(litres / 0.25)
@@ -216,11 +229,12 @@ export default function Dashboard() {
       const today = new Date().toISOString().split('T')[0]
       try {
         const [dailyRes, exerciseRes, habitRes, streakRes, profileRes] = await Promise.all([
-          fetch(`/api/logs/daily?date=${today}`),
-          fetch(`/api/logs/exercise?date=${today}`),
-          fetch(`/api/logs/habits?date=${today}`),
-          fetch('/api/streak'),
-          fetch('/api/profile'),
+          fetchWithTimeout(`/api/logs/daily?date=${today}`),
+          fetchWithTimeout(`/api/logs/exercise?date=${today}`),
+          fetchWithTimeout(`/api/logs/habits?date=${today}`),
+          fetchWithTimeout('/api/streak'),
+          fetchWithTimeout('/api/profile'),
+```
         ])
         const [daily, exercise, habit, streakData, profile] = await Promise.all([
           dailyRes.json(), exerciseRes.json(), habitRes.json(), streakRes.json(), profileRes.json()
