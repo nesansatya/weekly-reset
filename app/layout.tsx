@@ -3,6 +3,9 @@ import "./globals.css";
 import ErrorBoundary from "./components/ErrorBoundary";
 import SessionWatcher from "./components/SessionWatcher";
 import VersionCheck from "./components/VersionCheck";
+import { checkEnvVars } from "./lib/envCheck";
+
+checkEnvVars()
 
 export const metadata: Metadata = {
   title: "Weekly Reset",
