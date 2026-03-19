@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 import { createServerClient } from '@supabase/ssr'
+import { rateLimit } from '@/app/lib/rateLimit'
+
 
 async function makeClient() {
   const cookieStore = await cookies()
@@ -17,6 +19,13 @@ async function makeClient() {
 }
 
 export async function POST(request: Request) {
+  const headersList = await headers()
+  const ip = headersList.get('x-forwarded-for') ?? 'unknown'
+  const { allowed, retryAfter } = rateLimit(ip)
+  if (!allowed) return NextResponse.json(
+    { error: 'Too many requests' },
+    { status: 429, headers: { 'Retry-After': String(retryAfter) } }
+  )
   const supabase = await makeClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

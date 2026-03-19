@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 import { createServerClient } from '@supabase/ssr'
+import { rateLimit } from '@/app/lib/rateLimit'
 
 async function makeClient() {
   const cookieStore = await cookies()
