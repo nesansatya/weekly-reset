@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '../lib/supabase/client'
+import AuthGuard from '../components/AuthGuard'
 
 const days = [
   { name: 'Monday', type: 'Strength', duration: '30–40 min', exercises: [
@@ -351,6 +352,7 @@ export default function Dashboard() {
   const BOTTOM_NAV_HEIGHT = 70
 
   return (
+  <AuthGuard>
     <main style={s({
       minHeight: '100dvh',
       background: '#faf8f4',
@@ -655,5 +657,6 @@ export default function Dashboard() {
       </div>
 
     </main>
+  </AuthGuard>
   )
 }
