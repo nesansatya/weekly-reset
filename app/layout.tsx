@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 export const metadata: Metadata = {
   title: "Weekly Reset",
@@ -30,7 +31,9 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="Weekly Reset" />
       </head>
       <body>
-        {children}
+        <ErrorBoundary>
+          {children}
+        </ErrorBoundary>
       </body>
     </html>
   );
