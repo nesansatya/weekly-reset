@@ -51,6 +51,9 @@ export async function POST(request: Request) {
   if (!checkOrigin(request)) return NextResponse.json(
     { error: 'Forbidden' }, { status: 403 }
   )
+  if (!await checkRequestSize(request)) return NextResponse.json(
+    { error: 'Payload too large' }, { status: 413 }
+  )
   const headersList = await headers()
   const ip = headersList.get('x-forwarded-for') ?? 'unknown'
   const { allowed, retryAfter } = rateLimit(ip)

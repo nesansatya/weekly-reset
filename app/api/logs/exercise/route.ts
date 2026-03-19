@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { cookies, headers } from 'next/headers'
 import { createServerClient } from '@supabase/ssr'
-import { rateLimit } from '@/app/lib/rateLimit'
+import { rateLimit, checkRequestSize } from '@/app/lib/rateLimit'
 import { checkOrigin } from '@/app/lib/csrf'
 
 async function makeClient() {
@@ -21,6 +21,9 @@ async function makeClient() {
 export async function POST(request: Request) {
   if (!checkOrigin(request)) return NextResponse.json(
     { error: 'Forbidden' }, { status: 403 }
+  )
+  if (!await checkRequestSize(request)) return NextResponse.json(
+    { error: 'Payload too large' }, { status: 413 }
   )
   const headersList = await headers()
   const ip = headersList.get('x-forwarded-for') ?? 'unknown'
