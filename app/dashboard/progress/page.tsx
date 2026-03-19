@@ -123,7 +123,8 @@ export default function Progress() {
       <div style={s({
         position: 'fixed', bottom: 0, left: 0, right: 0,
         background: 'white', borderTop: '1px solid #e4e0d8',
-        display: 'flex', padding: '10px 0 34px',
+        display: 'flex', paddingTop: 10,
+        paddingBottom: 'calc(env(safe-area-inset-bottom) + 10px)',
         zIndex: 100,
       })}>
         {[
