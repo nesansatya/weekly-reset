@@ -98,11 +98,12 @@ export default function Summary() {
   }
 
   return (
-    <main style={s({ minHeight: '100dvh', background: '#faf8f4', fontFamily: "'DM Sans', Arial, sans-serif", paddingBottom: 'calc(70px + env(safe-area-inset-bottom))' })}>
+    <main style={s({ minHeight: '100dvh', background: '#faf8f4', fontFamily: "'DM Sans', Arial, sans-serif", paddingBottom: 100 })}>
 
       <div style={s({
-        padding: '16px 22px 0',
+        padding: '16px 22px 16px',
         paddingTop: 'calc(env(safe-area-inset-top) + 16px)',
+        background: '#f0ede6',
         display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
       })}>
         <div>
@@ -202,8 +203,7 @@ export default function Summary() {
       <div style={s({
         position: 'fixed', bottom: 0, left: 0, right: 0,
         background: 'white', borderTop: '1px solid #e4e0d8',
-        display: 'flex', paddingTop: 10,
-        paddingBottom: 'calc(env(safe-area-inset-bottom) + 10px)',
+        display: 'flex', padding: '10px 0 20px',
         zIndex: 100,
       })}>
         {[

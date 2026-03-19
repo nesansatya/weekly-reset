@@ -87,11 +87,12 @@ export default function ProfilePage() {
   }
 
   return (
-    <main style={s({ minHeight: '100dvh', background: '#faf8f4', fontFamily: "'DM Sans', Arial, sans-serif", paddingBottom: 'calc(env(safe-area-inset-bottom) + 40px)' })}>
+    <main style={s({ minHeight: '100dvh', background: '#faf8f4', fontFamily: "'DM Sans', Arial, sans-serif", paddingBottom: 100 })}>
 
       <div style={s({
-        padding: '16px 22px 0',
+        padding: '16px 22px 16px',
         paddingTop: 'calc(env(safe-area-inset-top) + 16px)',
+        background: '#f0ede6',
         display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
       })}>
         <div>
