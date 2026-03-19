@@ -45,7 +45,7 @@ export async function POST(request: Request) {
             subscription_status: 'pro',
             subscription_period_end: periodEnd,
           }).eq('id', userId)
-        } catch (e) { console.error('checkout error:', e) }
+        } catch (_e) { }
       }
       break
     }
@@ -62,7 +62,7 @@ export async function POST(request: Request) {
             subscription_period_end: periodEnd,
           }).eq('id', customer.metadata.supabase_user_id)
         }
-      } catch (e) { console.error('subscription updated error:', e) }
+      } catch (_e) { }
       break
     }
     case 'customer.subscription.deleted': {
@@ -77,7 +77,8 @@ export async function POST(request: Request) {
             subscription_period_end: null,
           }).eq('id', customer.metadata.supabase_user_id)
         }
-      } catch (e) { console.error('subscription deleted error:', e) }
+      } catch (_e) { }
+
       break
     }
   }
