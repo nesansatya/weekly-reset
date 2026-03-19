@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '../lib/supabase/client'
 
@@ -219,6 +219,21 @@ export default function Dashboard() {
   const [showWeightPrompt, setShowWeightPrompt] = useState(false)
   const [weightInput, setWeightInput] = useState('')
   const [weightUnit, setWeightUnit] = useState<'kg' | 'lbs'>('kg')
+  const [isOffline, setIsOffline] = useState(false)
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // #5 — Offline detection
+  useEffect(() => {
+    function handleOffline() { setIsOffline(true) }
+    function handleOnline() { setIsOffline(false) }
+    window.addEventListener('offline', handleOffline)
+    window.addEventListener('online', handleOnline)
+    setIsOffline(!navigator.onLine)
+    return () => {
+      window.removeEventListener('offline', handleOffline)
+      window.removeEventListener('online', handleOnline)
+    }
+  }, [])
 
   useEffect(() => {
     async function init() {
@@ -245,6 +260,7 @@ export default function Dashboard() {
         }
         if (exercise.data?.completed_exercises) setCheckedEx(exercise.data.completed_exercises)
         if (habit.data?.checked_habits) setCheckedHabits(habit.data.checked_habits)
+        // #6 — streak only set once here, not again in saveData
         if (streakData.data) setStreak(streakData.data.current_streak || 0)
         if (profile.data?.weight_kg) {
           setWeightKg(profile.data.weight_kg)
@@ -280,42 +296,46 @@ export default function Dashboard() {
     } catch (_e) { }
   }
 
+  // #7 — debounced saveData to prevent race conditions
   const saveData = useCallback(async (updates: {
     mood?: number, energy?: number, water?: number,
     habits?: Record<number, boolean>, exercises?: Record<number, boolean>
   }) => {
-    setSaving(true)
-    const m = updates.mood ?? mood
-    const e = updates.energy ?? energy
-    const w = updates.water ?? water
-    const h = updates.habits ?? checkedHabits
-    const ex = updates.exercises ?? checkedEx
-    try {
-      await Promise.all([
-        fetch('/api/logs/daily', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ mood: m, energy: e, waterGlasses: w }),
-        }),
-        fetch('/api/logs/habits', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ checkedHabits: h }),
-        }),
-        fetch('/api/logs/exercise', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ dayIndex: currentDay, completedExercises: ex }),
-        }),
-      ])
-      const habitsCount = Object.values(h).filter(Boolean).length
-      if (habitsCount >= 3 || Object.values(ex).some(Boolean) || w >= 5 || m > 0) {
-        const res = await fetch('/api/streak', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ habitsCompleted: habitsCount }),
-        })
-        const { data } = await res.json()
-        if (data) setStreak(data.current_streak || 0)
-      }
-    } catch (_e) { }
-    setSaving(false)
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+    saveTimerRef.current = setTimeout(async () => {
+      setSaving(true)
+      const m = updates.mood ?? mood
+      const e = updates.energy ?? energy
+      const w = updates.water ?? water
+      const h = updates.habits ?? checkedHabits
+      const ex = updates.exercises ?? checkedEx
+      try {
+        await Promise.all([
+          fetch('/api/logs/daily', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mood: m, energy: e, waterGlasses: w }),
+          }),
+          fetch('/api/logs/habits', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ checkedHabits: h }),
+          }),
+          fetch('/api/logs/exercise', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ dayIndex: currentDay, completedExercises: ex }),
+          }),
+        ])
+        const habitsCount = Object.values(h).filter(Boolean).length
+        if (habitsCount >= 3 || Object.values(ex).some(Boolean) || w >= 5 || m > 0) {
+          const res = await fetch('/api/streak', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ habitsCompleted: habitsCount }),
+          })
+          const { data } = await res.json()
+          if (data) setStreak(data.current_streak || 0)
+        }
+      } catch (_e) { }
+      setSaving(false)
+    }, 600)
   }, [mood, energy, water, checkedHabits, checkedEx, currentDay])
 
   const rec = getRecommendation(mood, energy)
@@ -338,10 +358,22 @@ export default function Dashboard() {
       paddingBottom: `calc(${BOTTOM_NAV_HEIGHT}px + env(safe-area-inset-bottom))`,
     })}>
 
+      {/* Offline banner */}
+      {isOffline && (
+        <div style={s({
+          background: '#1a1a18', color: 'white',
+          textAlign: 'center', padding: '8px 16px',
+          fontSize: 12, fontWeight: 600,
+          fontFamily: "'DM Sans', Arial, sans-serif",
+        })}>
+          ⚠️ You're offline — changes will not be saved
+        </div>
+      )}
+
       {/* Header */}
       <div style={s({
         padding: '16px 22px 0',
-        paddingTop: 'calc(env(safe-area-inset-top) + 16px)',
+        paddingTop: isOffline ? '16px' : 'calc(env(safe-area-inset-top) + 16px)',
         background: '#d4cfc4',
         display: 'flex',
         justifyContent: 'space-between',
