@@ -120,7 +120,7 @@ export default function Meals() {
       <div style={s({
         position: 'fixed', bottom: 0, left: 0, right: 0,
         background: 'white', borderTop: '1px solid #e4e0d8',
-        display: 'flex', padding: '10px 0 20px',
+        display: 'flex', padding: '10px 0 34px',
         zIndex: 100,
       })}>
         {[
