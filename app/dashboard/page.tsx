@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '../lib/supabase/client'
 
@@ -97,6 +97,89 @@ function getRecommendation(mood: number, energy: number) {
     highlight: [], highlightLabel: "",
     bg: '#f0f7e8', border: '#c0dd97', text: '#3B6D11', dot: '#639922',
   }
+}
+
+const quotes = [
+  "Consistency beats intensity. You don't need a perfect plan — you need a routine you can follow for years.",
+  "Small daily improvements are the key to staggering long-term results.",
+  "You don't rise to the level of your goals — you fall to the level of your systems.",
+  "The best workout is the one you actually do.",
+  "Sleep, water, movement. Master the basics before anything else.",
+  "Rest is not laziness — it's where your body rebuilds.",
+  "You don't need a gym. You need a decision.",
+  "Progress is progress, no matter how small.",
+  "A 30-minute walk beats zero hours at the gym.",
+  "Discipline is just doing it even when you don't feel like it.",
+  "Your future self is being built by your habits today.",
+  "The only bad workout is the one that didn't happen.",
+  "Eat well, move daily, sleep enough. That's the whole secret.",
+  "Motivation gets you started. Habit keeps you going.",
+  "Every expert was once a beginner who simply didn't quit.",
+  "Your body can do it. It's your mind you need to convince.",
+  "One percent better every day. That's all it takes.",
+  "You are one good night's sleep away from a better mood.",
+  "Drink your water. Go outside. It really is that simple.",
+  "Health is not a destination — it's a way of living.",
+  "Show up on your worst days and the best days will take care of themselves.",
+  "The pain of discipline weighs ounces. The pain of regret weighs tonnes.",
+  "Strong is not a size. Strong is showing up.",
+  "Your habits are your future self in disguise.",
+  "Make the choice today that your future self will thank you for.",
+  "It's not about having time. It's about making time.",
+  "A walk a day keeps the doctor away — and the bad mood too.",
+  "Real change happens in the quiet, unglamorous daily moments.",
+  "You don't have to be extreme — just consistent.",
+  "Take care of your body. It's the only place you have to live.",
+]
+
+function QuoteBanner() {
+  const [current, setCurrent] = React.useState(() => {
+    const day = new Date().getDay()
+    const week = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000))
+    return (day + week) % quotes.length
+  })
+
+  React.useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrent(c => (c + 1) % quotes.length)
+    }, 5000)
+    return () => clearInterval(timer)
+  }, [])
+
+  return (
+    <div style={{
+      margin: '16px 22px 20px',
+      background: '#fef3d0',
+      border: '1px solid #f5d58a',
+      borderRadius: 14,
+      padding: '20px 18px',
+    }}>
+      <div style={{
+        fontSize: 42, lineHeight: 1, marginBottom: 4,
+        fontFamily: "'Playfair Display', 'DM Serif Display', Georgia, serif",
+        color: '#ba7517',
+      }}>"</div>
+      <div style={{
+        fontFamily: "'Playfair Display', 'DM Serif Display', Georgia, serif",
+        fontStyle: 'italic', fontWeight: 700, fontSize: 15,
+        color: '#633806', lineHeight: 1.6, marginBottom: 12,
+      }}>
+        {quotes[current]}
+      </div>
+      <div style={{
+        fontSize: 11, fontWeight: 600, color: '#ba7517',
+        fontFamily: "'DM Sans', Arial, sans-serif", marginBottom: 12,
+      }}>— Your Weekly Reset</div>
+      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+        <div style={{ width: 16, height: 5, borderRadius: 3, background: '#ba7517' }}/>
+        <div style={{ width: 5, height: 5, borderRadius: 3, background: '#f5d58a' }}/>
+        <div style={{ width: 5, height: 5, borderRadius: 3, background: '#f5d58a' }}/>
+        <div style={{ fontSize: 10, color: '#ba7517', fontWeight: 600, fontFamily: "'DM Sans', Arial, sans-serif", marginLeft: 2 }}>
+          {current + 1} / {quotes.length}
+        </div>
+      </div>
+    </div>
+  )
 }
 
 function calcWaterGoal(weightKg: number) {
@@ -492,12 +575,8 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Tip */}
-      <div style={s({ margin: '16px 22px 20px', background: '#e1f5ee', borderLeft: '3px solid #5dcaa5', borderRadius: '0 12px 12px 0', padding: '12px 14px' })}>
-        <div style={s({ fontSize: 13, color: '#085041', lineHeight: 1.6, fontStyle: 'italic' })}>
-          Sleep alone fixes many issues: hormones, belly fat, eczema flare-ups, and stress. Aim for 7–8 hours.
-        </div>
-      </div>
+      {/* Motivational Quote Banner */}
+      <QuoteBanner />
 
       {/* Bottom nav */}
       <div style={s({
