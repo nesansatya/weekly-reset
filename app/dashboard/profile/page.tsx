@@ -61,20 +61,25 @@ export default function ProfilePage() {
         kg = parsed
       }
     }
-    await Promise.all([
-      supabase.auth.updateUser({ data: { full_name: nameInput, goal } }),
-      fetch('/api/profile', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ weight_kg: kg }),
-      })
-    ])
-    setUserName(nameInput)
-    setWeightKg(kg)
+    try {
+      const [, profileRes] = await Promise.all([
+        supabase.auth.updateUser({ data: { full_name: nameInput, goal } }),
+        fetch('/api/profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ weight_kg: kg }),
+        })
+      ])
+      const { data } = await profileRes.json()
+      if (data) {
+        setUserName(nameInput)
+        setWeightKg(kg)
+        setSaved(true)
+        setTimeout(() => setSaved(false), 2000)
+      }
+    } catch (_e) { }
     setSaving(false)
-    setSaved(true)
     saveRef.current = false
-    setTimeout(() => setSaved(false), 2000)
   }
 
   async function openBillingPortal() {
