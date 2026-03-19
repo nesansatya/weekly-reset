@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+
 const meals = [
   {
     time: 'Breakfast', hour: '7–9 am',
@@ -41,20 +42,22 @@ const s = (o: React.CSSProperties) => o
 
 export default function Meals() {
   const router = useRouter()
-const [active, setActive] = useState(0)
+  const [active, setActive] = useState(0)
   const meal = meals[active]
 
   return (
-    <main style={s({ minHeight: '100vh', background: '#faf8f4', fontFamily: "'DM Sans', Arial, sans-serif", paddingBottom: 100 })}>
+    <main style={s({ minHeight: '100dvh', background: '#faf8f4', fontFamily: "'DM Sans', Arial, sans-serif", paddingBottom: 'calc(70px + env(safe-area-inset-bottom))' })}>
 
-      <div style={s({ padding: '52px 22px 0' })}>
+      <div style={s({
+        padding: '16px 22px 0',
+        paddingTop: 'calc(env(safe-area-inset-top) + 16px)',
+      })}>
         <div style={s({ display: 'flex', justifyContent: 'space-between', alignItems: 'center' })}>
-  <div style={s({ fontSize: 24, fontWeight: 700, color: '#1a1a18', fontFamily: "'DM Serif Display', Georgia, serif" })}>Meal guide</div>
-  <button onClick={() => router.push('/dashboard/meal-plan')} style={s({ fontSize: 11, fontWeight: 600, color: '#4a7c2f', background: '#e8f5e0', border: 'none', borderRadius: 20, padding: '4px 10px', cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif" })}>✦ My plan</button>
-</div>
+          <div style={s({ fontSize: 24, fontWeight: 700, color: '#1a1a18', fontFamily: "'DM Serif Display', Georgia, serif" })}>Meal guide</div>
+          <button onClick={() => router.push('/dashboard/meal-plan')} style={s({ fontSize: 11, fontWeight: 600, color: '#4a7c2f', background: '#e8f5e0', border: 'none', borderRadius: 20, padding: '4px 10px', cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif" })}>✦ My plan</button>
+        </div>
       </div>
 
-      {/* Tabs */}
       <div style={s({ display: 'flex', gap: 8, padding: '14px 22px 0', overflowX: 'auto', scrollbarWidth: 'none' })}>
         {meals.map((m, i) => (
           <button key={i} onClick={() => setActive(i)} style={s({
@@ -68,7 +71,6 @@ const [active, setActive] = useState(0)
         ))}
       </div>
 
-      {/* Meal card */}
       <div style={s({ margin: '14px 22px 0', background: 'white', border: '1px solid #e4e0d8', borderRadius: 14, overflow: 'hidden' })}>
         <div style={s({ padding: '14px 16px 12px', borderBottom: '1px solid #f5f2ec', display: 'flex', justifyContent: 'space-between', alignItems: 'center' })}>
           <div style={s({ fontSize: 16, fontWeight: 700, color: '#1a1a18' })}>{meal.time}</div>
@@ -86,7 +88,6 @@ const [active, setActive] = useState(0)
         </div>
       </div>
 
-      {/* Each meal should include */}
       <div style={s({ margin: '14px 22px 0', background: 'white', border: '1px solid #e4e0d8', borderRadius: 14, padding: 16 })}>
         <div style={s({ fontSize: 14, fontWeight: 700, color: '#1a1a18', marginBottom: 14 })}>Each meal should include</div>
         {[
@@ -105,7 +106,6 @@ const [active, setActive] = useState(0)
         ))}
       </div>
 
-      {/* Rules */}
       <div style={s({ margin: '14px 22px 0', background: '#1a1a18', borderRadius: 14, padding: 16 })}>
         <div style={s({ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', marginBottom: 12 })}>Nutrition rules</div>
         {rules.map((r, i) => (
@@ -116,8 +116,13 @@ const [active, setActive] = useState(0)
         ))}
       </div>
 
-      {/* Bottom nav */}
-      <div style={s({ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'white', borderTop: '1px solid #e4e0d8', display: 'flex', padding: '10px 0 20px', zIndex: 100 })}>
+      <div style={s({
+        position: 'fixed', bottom: 0, left: 0, right: 0,
+        background: 'white', borderTop: '1px solid #e4e0d8',
+        display: 'flex', paddingTop: 10,
+        paddingBottom: 'calc(env(safe-area-inset-bottom) + 10px)',
+        zIndex: 100,
+      })}>
         {[
           { icon: '🏠', label: 'Today', path: '/dashboard', active: false },
           { icon: '📊', label: 'Summary', path: '/dashboard/summary', active: false },

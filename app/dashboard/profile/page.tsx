@@ -87,10 +87,13 @@ export default function ProfilePage() {
   }
 
   return (
-    <main style={s({ minHeight: '100vh', background: '#faf8f4', fontFamily: "'DM Sans', Arial, sans-serif", paddingBottom: 100 })}>
+    <main style={s({ minHeight: '100dvh', background: '#faf8f4', fontFamily: "'DM Sans', Arial, sans-serif", paddingBottom: 'calc(env(safe-area-inset-bottom) + 40px)' })}>
 
-      {/* Header */}
-      <div style={s({ padding: '52px 22px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' })}>
+      <div style={s({
+        padding: '16px 22px 0',
+        paddingTop: 'calc(env(safe-area-inset-top) + 16px)',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
+      })}>
         <div>
           <button onClick={() => router.push('/dashboard')} style={s({ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', color: '#3d3d3a', marginBottom: 12, display: 'block' })}>←</button>
           <div style={s({ fontSize: 24, fontWeight: 700, color: '#1a1a18', fontFamily: "'DM Serif Display', Georgia, serif" })}>Profile</div>
@@ -101,7 +104,6 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Pro status card */}
       {isPro ? (
         <div style={s({ margin: '20px 22px 0', background: '#1a1a18', borderRadius: 14, padding: 16, position: 'relative', overflow: 'hidden' })}>
           <div style={s({ position: 'absolute', width: 100, height: 100, borderRadius: '50%', background: '#7db84a', opacity: 0.1, top: -20, right: -20 })}/>
@@ -141,7 +143,6 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* Name */}
       <div style={s({ margin: '16px 22px 0', background: 'white', borderRadius: 14, border: '1px solid #e4e0d8', padding: 16 })}>
         <div style={s({ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: '#7a7a72', textTransform: 'uppercase', marginBottom: 10 })}>Your name</div>
         <input
@@ -152,7 +153,6 @@ export default function ProfilePage() {
         />
       </div>
 
-      {/* Goal */}
       <div style={s({ margin: '12px 22px 0', background: 'white', borderRadius: 14, border: '1px solid #e4e0d8', padding: 16 })}>
         <div style={s({ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: '#7a7a72', textTransform: 'uppercase', marginBottom: 12 })}>Your main goal</div>
         <div style={s({ display: 'flex', gap: 8, flexWrap: 'wrap' })}>
@@ -169,7 +169,6 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Weight */}
       <div style={s({ margin: '12px 22px 0', background: 'white', borderRadius: 14, border: '1px solid #e4e0d8', padding: 16 })}>
         <div style={s({ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: '#7a7a72', textTransform: 'uppercase', marginBottom: 10 })}>Weight</div>
         <div style={s({ display: 'flex', gap: 8, marginBottom: 10 })}>
@@ -190,7 +189,6 @@ export default function ProfilePage() {
         )}
       </div>
 
-      {/* Save */}
       <div style={s({ margin: '16px 22px 0' })}>
         <button onClick={saveProfile} disabled={saving} style={s({
           width: '100%', padding: 15, background: '#1a1a18', color: 'white',
@@ -202,7 +200,6 @@ export default function ProfilePage() {
         </button>
       </div>
 
-      {/* App info */}
       <div style={s({ margin: '12px 22px 0', background: 'white', borderRadius: 14, border: '1px solid #e4e0d8', overflow: 'hidden' })}>
         {[
           { label: 'Version', value: isPro ? 'Pro · v1.0' : 'Free · v1.0' },
@@ -216,7 +213,6 @@ export default function ProfilePage() {
         ))}
       </div>
 
-      {/* Sign out */}
       <div style={s({ margin: '12px 22px 0' })}>
         <button onClick={signOut} style={s({
           width: '100%', padding: 15,

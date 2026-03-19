@@ -35,21 +35,23 @@ export default function Progress() {
   }, [])
 
   return (
-    <main style={s({ minHeight: '100vh', background: '#faf8f4', fontFamily: "'DM Sans', Arial, sans-serif", paddingBottom: 100 })}>
+    <main style={s({ minHeight: '100dvh', background: '#faf8f4', fontFamily: "'DM Sans', Arial, sans-serif", paddingBottom: 'calc(70px + env(safe-area-inset-bottom))' })}>
 
-      <div style={s({ padding: '52px 22px 0' })}>
+      <div style={s({
+        padding: '16px 22px 0',
+        paddingTop: 'calc(env(safe-area-inset-top) + 16px)',
+      })}>
         <div style={s({ fontSize: 24, fontWeight: 700, color: '#1a1a18', fontFamily: "'DM Serif Display', Georgia, serif" })}>Your progress</div>
         <div style={s({ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 })}>
-  <div style={s({ fontSize: 13, color: '#7a7a72' })}>All-time stats</div>
-  <button onClick={() => router.push('/dashboard/history')} style={s({ fontSize: 11, fontWeight: 600, color: '#4a7c2f', background: '#e8f5e0', border: 'none', borderRadius: 20, padding: '4px 10px', cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif" })}>✦ Full history</button>
-</div>
+          <div style={s({ fontSize: 13, color: '#7a7a72' })}>All-time stats</div>
+          <button onClick={() => router.push('/dashboard/history')} style={s({ fontSize: 11, fontWeight: 600, color: '#4a7c2f', background: '#e8f5e0', border: 'none', borderRadius: 20, padding: '4px 10px', cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif" })}>✦ Full history</button>
+        </div>
       </div>
 
       {loading ? (
         <div style={s({ textAlign: 'center', padding: '60px 22px', color: '#7a7a72', fontSize: 14 })}>Loading your stats...</div>
       ) : (
         <>
-          {/* Real stats */}
           <div style={s({ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, margin: '16px 22px 0' })}>
             {[
               { num: String(streakData.total_active_days), label: 'Active days', color: '#4a7c2f' },
@@ -63,7 +65,6 @@ export default function Progress() {
             ))}
           </div>
 
-          {/* Longest streak */}
           {streakData.longest_streak > 0 && (
             <div style={s({ margin: '10px 22px 0', background: '#fff4e0', border: '1px solid #f5d58a', borderRadius: 12, padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' })}>
               <div style={s({ fontSize: 13, fontWeight: 600, color: '#8a6200' })}>🏆 Longest streak ever</div>
@@ -73,7 +74,6 @@ export default function Progress() {
         </>
       )}
 
-      {/* Timeline */}
       <div style={s({ margin: '16px 22px 0', background: 'white', border: '1px solid #e4e0d8', borderRadius: 14, padding: 16 })}>
         <div style={s({ fontSize: 13, fontWeight: 600, color: '#3d3d3a', marginBottom: 14 })}>What to expect</div>
         {timeline.map((t, i) => (
@@ -90,7 +90,6 @@ export default function Progress() {
         ))}
       </div>
 
-      {/* Weekly targets */}
       <div style={s({ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, margin: '16px 22px 0' })}>
         {[
           { num: '3×', label: 'Strength sessions', color: '#4a7c2f' },
@@ -104,7 +103,6 @@ export default function Progress() {
         ))}
       </div>
 
-      {/* Boosters */}
       <div style={s({ margin: '16px 22px 0', background: 'white', border: '1px solid #e4e0d8', borderRadius: 14, padding: 16 })}>
         <div style={s({ fontSize: 13, fontWeight: 600, color: '#3d3d3a', marginBottom: 12 })}>Optional boosters</div>
         {boosters.map((b, i) => (
@@ -115,15 +113,19 @@ export default function Progress() {
         ))}
       </div>
 
-      {/* Tip */}
       <div style={s({ margin: '16px 22px 0', background: '#e1f5ee', borderLeft: '3px solid #5dcaa5', borderRadius: '0 12px 12px 0', padding: '12px 14px' })}>
         <div style={s({ fontSize: 13, color: '#085041', lineHeight: 1.5, fontStyle: 'italic' })}>
           "Consistency beats intensity. You don't need a perfect plan — you need a routine you can follow for years."
         </div>
       </div>
 
-      {/* Bottom nav */}
-      <div style={s({ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'white', borderTop: '1px solid #e4e0d8', display: 'flex', padding: '10px 0 20px', zIndex: 100 })}>
+      <div style={s({
+        position: 'fixed', bottom: 0, left: 0, right: 0,
+        background: 'white', borderTop: '1px solid #e4e0d8',
+        display: 'flex', paddingTop: 10,
+        paddingBottom: 'calc(env(safe-area-inset-bottom) + 10px)',
+        zIndex: 100,
+      })}>
         {[
           { icon: '🏠', label: 'Today', path: '/dashboard', active: false },
           { icon: '📊', label: 'Summary', path: '/dashboard/summary', active: false },

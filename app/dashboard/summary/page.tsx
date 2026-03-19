@@ -43,7 +43,6 @@ export default function Summary() {
     load()
   }, [])
 
-  // Get week dates (Mon–today)
   function getWeekDates() {
     const dates = []
     const today = new Date()
@@ -68,8 +67,7 @@ export default function Summary() {
     return { daily, complete, mood: daily?.mood || 0, energy: daily?.energy || 0 }
   }
 
-  // Stats
-  const strengthDays = [0, 2, 4] // Mon, Wed, Fri
+  const strengthDays = [0, 2, 4]
   let strengthDone = 0
   let totalHabits = 0
   let waterDays = 0
@@ -87,7 +85,6 @@ export default function Summary() {
     if ((daily?.water_glasses || 0) >= 8) waterDays++
   })
 
-  // Habit completion %
   function habitPct(habitIdx: number) {
     const daysLogged = todayIdx + 1
     if (daysLogged === 0) return 0
@@ -101,9 +98,13 @@ export default function Summary() {
   }
 
   return (
-    <main style={s({ minHeight: '100vh', background: '#faf8f4', fontFamily: "'DM Sans', Arial, sans-serif", paddingBottom: 100 })}>
+    <main style={s({ minHeight: '100dvh', background: '#faf8f4', fontFamily: "'DM Sans', Arial, sans-serif", paddingBottom: 'calc(70px + env(safe-area-inset-bottom))' })}>
 
-      <div style={s({ padding: '52px 22px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' })}>
+      <div style={s({
+        padding: '16px 22px 0',
+        paddingTop: 'calc(env(safe-area-inset-top) + 16px)',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
+      })}>
         <div>
           <button onClick={() => router.push('/dashboard/checkin')} style={s({ fontSize: 11, fontWeight: 600, color: '#4a7c2f', background: '#e8f5e0', border: 'none', borderRadius: 20, padding: '4px 10px', cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif", marginTop: 8, display: 'inline-block' })}>✦ AI Check-in</button>
           <div style={s({ fontSize: 12, color: '#7a7a72', marginTop: 2 })}>
@@ -121,7 +122,6 @@ export default function Summary() {
         <div style={s({ textAlign: 'center', padding: '60px 22px', color: '#7a7a72', fontSize: 14 })}>Loading your data...</div>
       ) : (
         <>
-          {/* Week grid */}
           <div style={s({ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 6, margin: '16px 22px 0' })}>
             {weekDates.map((date, i) => {
               const d = getDayData(date)
@@ -145,7 +145,6 @@ export default function Summary() {
             })}
           </div>
 
-          {/* Stats */}
           <div style={s({ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, margin: '16px 22px 0' })}>
             {[
               { num: `${strengthDone}/3`, label: 'Strength days', sub: strengthDone === 3 ? 'Full week ✓' : `${3 - strengthDone} more to go`, color: '#4a7c2f' },
@@ -159,7 +158,6 @@ export default function Summary() {
             ))}
           </div>
 
-          {/* Mood chart */}
           <div style={s({ margin: '16px 22px 0', background: 'white', border: '1px solid #e4e0d8', borderRadius: 14, padding: 16 })}>
             <div style={s({ fontSize: 13, fontWeight: 600, color: '#3d3d3a', marginBottom: 14 })}>Mood this week</div>
             <div style={s({ display: 'flex', alignItems: 'flex-end', gap: 6, height: 60 })}>
@@ -180,7 +178,6 @@ export default function Summary() {
             </div>
           </div>
 
-          {/* Habit completion */}
           <div style={s({ margin: '16px 22px 0', background: 'white', border: '1px solid #e4e0d8', borderRadius: 14, padding: 16 })}>
             <div style={s({ fontSize: 13, fontWeight: 600, color: '#3d3d3a', marginBottom: 14 })}>Habit completion</div>
             {habitDefs.map((h, i) => {
@@ -202,8 +199,13 @@ export default function Summary() {
         </>
       )}
 
-      {/* Bottom nav */}
-      <div style={s({ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'white', borderTop: '1px solid #e4e0d8', display: 'flex', padding: '10px 0 20px', zIndex: 100 })}>
+      <div style={s({
+        position: 'fixed', bottom: 0, left: 0, right: 0,
+        background: 'white', borderTop: '1px solid #e4e0d8',
+        display: 'flex', paddingTop: 10,
+        paddingBottom: 'calc(env(safe-area-inset-bottom) + 10px)',
+        zIndex: 100,
+      })}>
         {[
           { icon: '🏠', label: 'Today', path: '/dashboard', active: false },
           { icon: '📊', label: 'Summary', path: '/dashboard/summary', active: true },
