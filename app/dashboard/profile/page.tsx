@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '../../lib/supabase/client'
 
@@ -23,6 +23,7 @@ export default function ProfilePage() {
   const [subscriptionStatus, setSubscriptionStatus] = useState('free')
   const [periodEnd, setPeriodEnd] = useState<string | null>(null)
   const [portalLoading, setPortalLoading] = useState(false)
+  const saveRef = useRef(false)
 
   useEffect(() => {
     async function load() {
@@ -49,6 +50,8 @@ export default function ProfilePage() {
   }, [])
 
   async function saveProfile() {
+    if (saveRef.current) return
+    saveRef.current = true
     setSaving(true)
     let kg = weightKg
     if (weightInput) {
@@ -70,6 +73,7 @@ export default function ProfilePage() {
     setWeightKg(kg)
     setSaving(false)
     setSaved(true)
+    saveRef.current = false
     setTimeout(() => setSaved(false), 2000)
   }
 
