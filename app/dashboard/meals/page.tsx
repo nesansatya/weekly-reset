@@ -46,7 +46,7 @@ export default function Meals() {
   const meal = meals[active]
 
   return (
-    <main style={s({ minHeight: '100dvh', background: '#faf8f4', fontFamily: "'DM Sans', Arial, sans-serif", paddingBottom: 100 })}>
+    <main style={s({ minHeight: '100dvh', background: '#faf8f4', fontFamily: "'DM Sans', Arial, sans-serif", paddingBottom: 160 })}>
 
       <div style={s({
         padding: '16px 22px 16px',
