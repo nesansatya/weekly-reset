@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { cookies, headers } from 'next/headers'
 import { createServerClient } from '@supabase/ssr'
 import { rateLimit } from '@/app/lib/rateLimit'
-
+import { checkOrigin } from '@/app/lib/csrf'
 
 async function makeClient() {
   const cookieStore = await cookies()
@@ -19,6 +19,9 @@ async function makeClient() {
 }
 
 export async function POST(request: Request) {
+  if (!checkOrigin(request)) return NextResponse.json(
+    { error: 'Forbidden' }, { status: 403 }
+  )
   const headersList = await headers()
   const ip = headersList.get('x-forwarded-for') ?? 'unknown'
   const { allowed, retryAfter } = rateLimit(ip)
