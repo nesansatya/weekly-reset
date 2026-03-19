@@ -17,7 +17,21 @@ async function makeClient() {
   )
 }
 
+function sanitizeWeight(value: unknown): number | null {
+  const num = parseFloat(String(value))
+  if (isNaN(num) || num <= 0 || num > 300) return null
+  return Math.round(num * 10) / 10
+}
+
 export async function GET() {
+  const headersList = await headers()
+  const ip = headersList.get('x-forwarded-for') ?? 'unknown'
+  const { allowed, retryAfter } = rateLimit(ip)
+  if (!allowed) return NextResponse.json(
+    { error: 'Too many requests' },
+    { status: 429, headers: { 'Retry-After': String(retryAfter) } }
+  )
+
   const supabase = await makeClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -33,15 +47,30 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const headersList = await headers()
+  const ip = headersList.get('x-forwarded-for') ?? 'unknown'
+  const { allowed, retryAfter } = rateLimit(ip)
+  if (!allowed) return NextResponse.json(
+    { error: 'Too many requests' },
+    { status: 429, headers: { 'Retry-After': String(retryAfter) } }
+  )
+
   const supabase = await makeClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await request.json()
 
+  // Sanitize weight input on backend
+  const weight = sanitizeWeight(body.weight_kg)
+  if (weight === null) return NextResponse.json(
+    { error: 'Invalid weight value' },
+    { status: 400 }
+  )
+
   const { data, error } = await supabase
     .from('users')
-    .update({ weight_kg: body.weight_kg })
+    .update({ weight_kg: weight })
     .eq('id', user.id)
     .select()
     .single()

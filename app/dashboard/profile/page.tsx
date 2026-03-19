@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
+import { sanitizeName } from '../../lib/sanitize'
 import { useRouter } from 'next/navigation'
 import { createClient } from '../../lib/supabase/client'
 
@@ -63,7 +64,7 @@ export default function ProfilePage() {
     }
     try {
       const [, profileRes] = await Promise.all([
-        supabase.auth.updateUser({ data: { full_name: nameInput, goal } }),
+        supabase.auth.updateUser({ data: { full_name: sanitizeName(nameInput), goal } }),
         fetch('/api/profile', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
