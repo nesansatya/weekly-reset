@@ -15,7 +15,7 @@ export default function Home() {
 
   return (
     <main style={{
-      minHeight: '100vh',
+      minHeight: '100dvh',
       background: '#1a1a18',
       display: 'flex',
       flexDirection: 'column',
@@ -23,6 +23,8 @@ export default function Home() {
       justifyContent: 'center',
       fontFamily: "'DM Sans', Arial, sans-serif",
       padding: '2rem',
+      paddingTop: 'calc(env(safe-area-inset-top) + 2rem)',
+      paddingBottom: 'calc(env(safe-area-inset-bottom) + 2rem)',
       position: 'relative',
       overflow: 'hidden',
     }}>
@@ -41,8 +43,9 @@ export default function Home() {
         <div style={{
           display: 'inline-flex', alignItems: 'center', gap: 6,
           background: 'rgba(125,184,74,0.15)',
-          border: '1px solid rgba(125,184,74,0.3)',
+          border: '1px solid rgba(125,184,74,0.4)',
           borderRadius: 30, padding: '5px 14px', marginBottom: 28,
+          boxShadow: '0 0 12px rgba(125,184,74,0.35), 0 0 24px rgba(125,184,74,0.15)',
         }}>
           <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#7db84a' }}/>
           <span style={{ fontSize: 12, fontWeight: 600, color: '#7db84a', letterSpacing: '0.04em' }}>

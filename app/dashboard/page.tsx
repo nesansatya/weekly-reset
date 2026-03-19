@@ -233,11 +233,24 @@ export default function Dashboard() {
 
   const s = (obj: React.CSSProperties) => obj
 
+  const BOTTOM_NAV_HEIGHT = 70
+
   return (
-    <main style={s({ minHeight: '100vh', background: '#faf8f4', fontFamily: "'DM Sans', Arial, sans-serif", paddingBottom: 100 })}>
+    <main style={s({
+      minHeight: '100dvh',
+      background: '#faf8f4',
+      fontFamily: "'DM Sans', Arial, sans-serif",
+      paddingBottom: `calc(${BOTTOM_NAV_HEIGHT}px + env(safe-area-inset-bottom))`,
+    })}>
 
       {/* Header */}
-      <div style={s({ padding: '52px 22px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' })}>
+      <div style={s({
+        padding: '16px 22px 0',
+        paddingTop: 'calc(env(safe-area-inset-top) + 16px)',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+      })}>
         <div>
           <div style={s({ fontSize: 12, color: '#7a7a72', fontWeight: 500 })}>{getGreeting()}</div>
           <div style={s({ fontSize: 24, fontWeight: 700, color: '#1a1a18', fontFamily: "'DM Serif Display', Georgia, serif", marginTop: 2 })}>
@@ -297,11 +310,11 @@ export default function Dashboard() {
       {/* Exercises */}
       <div style={s({ margin: '16px 22px 0' })}>
         <div style={s({ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 })}>
-  <div style={s({ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: '#7a7a72', textTransform: 'uppercase' })}>Today's workout</div>
-  <button onClick={() => router.push('/dashboard/workout')} style={s({ fontSize: 11, fontWeight: 600, color: '#4a7c2f', background: '#e8f5e0', border: 'none', borderRadius: 20, padding: '4px 10px', cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif" })}>
-    ✦ Customise
-  </button>
-</div>
+          <div style={s({ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: '#7a7a72', textTransform: 'uppercase' })}>Today's workout</div>
+          <button onClick={() => router.push('/dashboard/workout')} style={s({ fontSize: 11, fontWeight: 600, color: '#4a7c2f', background: '#e8f5e0', border: 'none', borderRadius: 20, padding: '4px 10px', cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif" })}>
+            ✦ Customise
+          </button>
+        </div>
         <div style={s({ background: 'white', borderRadius: 14, border: '1px solid #e4e0d8', overflow: 'hidden' })}>
           {dayData.exercises.map((ex, i) => (
             <div key={i} onClick={() => {
@@ -486,7 +499,15 @@ export default function Dashboard() {
       </div>
 
       {/* Bottom nav */}
-      <div style={s({ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'white', borderTop: '1px solid #e4e0d8', display: 'flex', padding: '10px 0 20px', zIndex: 100 })}>
+      <div style={s({
+        position: 'fixed', bottom: 0, left: 0, right: 0,
+        background: 'white',
+        borderTop: '1px solid #e4e0d8',
+        display: 'flex',
+        paddingTop: 10,
+        paddingBottom: 'calc(env(safe-area-inset-bottom) + 10px)',
+        zIndex: 100,
+      })}>
         {[
           { icon: '🏠', label: 'Today', path: '/dashboard', active: true },
           { icon: '📊', label: 'Summary', path: '/dashboard/summary', active: false },
