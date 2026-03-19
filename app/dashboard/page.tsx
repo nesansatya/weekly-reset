@@ -189,9 +189,9 @@ async function fetchWithTimeout(url: string, options?: RequestInit, ms = 8000) {
     const res = await fetch(url, { ...options, signal: controller.signal })
     clearTimeout(timer)
     return res
-  } catch (e) {
+  } catch (_e) {
     clearTimeout(timer)
-    throw e
+    throw _e
   }
 }
 
@@ -234,7 +234,6 @@ export default function Dashboard() {
           fetchWithTimeout(`/api/logs/habits?date=${today}`),
           fetchWithTimeout('/api/streak'),
           fetchWithTimeout('/api/profile'),
-
         ])
         const [daily, exercise, habit, streakData, profile] = await Promise.all([
           dailyRes.json(), exerciseRes.json(), habitRes.json(), streakRes.json(), profileRes.json()
@@ -254,8 +253,7 @@ export default function Dashboard() {
           setShowWeightPrompt(true)
         }
         setProfileLoaded(true)
-      } catch (e) {
-        console.log(e)
+      } catch (_e) {
         setShowWeightPrompt(true)
         setProfileLoaded(true)
       }
@@ -279,7 +277,7 @@ export default function Dashboard() {
         setShowWeightPrompt(false)
         setWeightInput('')
       }
-    } catch (e) { console.log(e) }
+    } catch (_e) { }
   }
 
   const saveData = useCallback(async (updates: {
@@ -316,7 +314,7 @@ export default function Dashboard() {
         const { data } = await res.json()
         if (data) setStreak(data.current_streak || 0)
       }
-    } catch (e) { console.log(e) }
+    } catch (_e) { }
     setSaving(false)
   }, [mood, energy, water, checkedHabits, checkedEx, currentDay])
 
@@ -508,7 +506,6 @@ export default function Dashboard() {
                   const val = e.target.value
                   if (val === '' || (parseFloat(val) > 0 && parseFloat(val) <= 300)) setWeightInput(val)
                 }}
-
                 onKeyDown={e => e.key === 'Enter' && saveWeight()}
                 style={s({ flex: 1, padding: '10px 12px', border: '1.5px solid #97C459', borderRadius: 8, fontSize: 14, color: '#1a1a18', background: 'white', outline: 'none', fontFamily: "'DM Sans', Arial, sans-serif" })}
               />
