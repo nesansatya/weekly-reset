@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import ErrorBoundary from "./components/ErrorBoundary";
+import SessionWatcher from "./components/SessionWatcher";
 
 export const metadata: Metadata = {
   title: "Weekly Reset",
@@ -32,8 +33,10 @@ export default function RootLayout({
       </head>
       <body>
         <ErrorBoundary>
+          <SessionWatcher />
           {children}
         </ErrorBoundary>
+```
       </body>
     </html>
   );
