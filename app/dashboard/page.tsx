@@ -234,7 +234,7 @@ export default function Dashboard() {
           fetchWithTimeout(`/api/logs/habits?date=${today}`),
           fetchWithTimeout('/api/streak'),
           fetchWithTimeout('/api/profile'),
-```
+
         ])
         const [daily, exercise, habit, streakData, profile] = await Promise.all([
           dailyRes.json(), exerciseRes.json(), habitRes.json(), streakRes.json(), profileRes.json()
@@ -265,7 +265,7 @@ export default function Dashboard() {
 
   async function saveWeight() {
     let kg = parseFloat(weightInput)
-    if (isNaN(kg) || kg <= 0) return
+    if (isNaN(kg) || kg <= 0 || kg > 300) return
     if (weightUnit === 'lbs') kg = Math.round(kg / 2.205 * 10) / 10
     try {
       const res = await fetch('/api/profile', {
@@ -501,8 +501,14 @@ export default function Dashboard() {
               <input
                 type="number"
                 placeholder={weightUnit === 'kg' ? 'e.g. 70' : 'e.g. 154'}
+                min="1"
+                max="300"
                 value={weightInput}
-                onChange={e => setWeightInput(e.target.value)}
+                onChange={e => {
+                  const val = e.target.value
+                  if (val === '' || (parseFloat(val) > 0 && parseFloat(val) <= 300)) setWeightInput(val)
+                }}
+
                 onKeyDown={e => e.key === 'Enter' && saveWeight()}
                 style={s({ flex: 1, padding: '10px 12px', border: '1.5px solid #97C459', borderRadius: 8, fontSize: 14, color: '#1a1a18', background: 'white', outline: 'none', fontFamily: "'DM Sans', Arial, sans-serif" })}
               />
