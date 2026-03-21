@@ -18,7 +18,10 @@ async function makeClient() {
   )
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  if (!await checkRequestSize(request)) return NextResponse.json(
+    { error: 'Payload too large' }, { status: 413 }
+  )
   const headersList = await headers()
   const ip = headersList.get('x-forwarded-for') ?? 'unknown'
   const { allowed, retryAfter } = rateLimit(ip)
