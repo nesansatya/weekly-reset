@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { cookies, headers } from 'next/headers'
 import { createServerClient } from '@supabase/ssr'
-import { rateLimit } from '@/app/lib/rateLimit'
+import { rateLimit, checkRequestSize } from '@/app/lib/rateLimit'
 import { checkOrigin } from '@/app/lib/csrf'
 
 async function makeClient() {
