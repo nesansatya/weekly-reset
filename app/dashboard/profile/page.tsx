@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { sanitizeName } from '../../lib/sanitize'
+import { useRamadan } from '../../lib/RamadanContext'
 import { useRouter } from 'next/navigation'
 import { createClient } from '../../lib/supabase/client'
 
@@ -24,6 +25,7 @@ export default function ProfilePage() {
   const [subscriptionStatus, setSubscriptionStatus] = useState('free')
   const [periodEnd, setPeriodEnd] = useState<string | null>(null)
   const [portalLoading, setPortalLoading] = useState(false)
+const { isRamadanMode, toggleRamadanMode } = useRamadan()
   const saveRef = useRef(false)
 
   useEffect(() => {
@@ -211,7 +213,30 @@ export default function ProfilePage() {
         </button>
       </div>
 
-      <div style={s({ margin: '12px 22px 0', background: 'white', borderRadius: 14, border: '1px solid #e4e0d8', overflow: 'hidden' })}>
+      <div style={s({ margin: '12px 22px 0', background: isRamadanMode ? '#1a1a18' : 'white', borderRadius: 14, border: `1px solid ${isRamadanMode ? '#c4a35a' : '#e4e0d8'}`, padding: 16 })}>
+  <div style={s({ display: 'flex', justifyContent: 'space-between', alignItems: 'center' })}>
+    <div>
+      <div style={s({ fontSize: 14, fontWeight: 700, color: isRamadanMode ? '#f0d080' : '#1a1a18', marginBottom: 2 })}>🌙 Ramadan Mode</div>
+      <div style={s({ fontSize: 12, color: isRamadanMode ? 'rgba(255,255,255,0.5)' : '#7a7a72' })}>
+        {isRamadanMode ? 'Active — app adjusted for fasting' : 'Adjusts app for fasting schedule'}
+      </div>
+    </div>
+    <button onClick={toggleRamadanMode} style={s({
+      width: 48, height: 26, borderRadius: 13,
+      background: isRamadanMode ? '#c4a35a' : '#e4e0d8',
+      border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
+    })}>
+      <div style={s({
+        position: 'absolute', top: 3,
+        left: isRamadanMode ? 25 : 3,
+        width: 20, height: 20, borderRadius: '50%',
+        background: 'white', transition: 'left 0.2s',
+      })} />
+    </button>
+  </div>
+</div>
+
+<div style={s({ margin: '12px 22px 0', background: 'white', borderRadius: 14, border: '1px solid #e4e0d8', overflow: 'hidden' })}>
         {[
           { label: 'Version', value: isPro ? 'Pro · v1.0' : 'Free · v1.0' },
           { label: 'Plan', value: isPro ? '✦ Weekly Reset Pro' : 'Free' },

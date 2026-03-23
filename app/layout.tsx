@@ -5,6 +5,7 @@ import SessionWatcher from "./components/SessionWatcher";
 import VersionCheck from "./components/VersionCheck";
 import { checkEnvVars } from "./lib/envCheck";
 import OneSignalInit from "./components/OneSignalInit";
+import { RamadanProvider } from "./lib/RamadanContext";
 
 checkEnvVars()
 
@@ -38,11 +39,13 @@ export default function RootLayout({
       </head>
       <body>
         <ErrorBoundary>
+    <RamadanProvider>
     <OneSignalInit />
           <SessionWatcher />
           <VersionCheck />
           {children}
-        </ErrorBoundary>
+        </RamadanProvider>
+</ErrorBoundary>
 ```
       </body>
     </html>
