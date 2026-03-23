@@ -35,7 +35,13 @@ export function RamadanProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const saved = localStorage.getItem('ramadanMode');
-    if (saved) setIsRamadanMode(JSON.parse(saved));
+    if (saved) {
+      setIsRamadanMode(JSON.parse(saved));
+    } else if (isRamadanActive) {
+      // Auto-enable during Ramadan if user hasn't set a preference yet
+      setIsRamadanMode(true);
+      localStorage.setItem('ramadanMode', JSON.stringify(true));
+    }
   }, []);
 
   const toggleRamadanMode = () => {
