@@ -4,6 +4,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import SessionWatcher from "./components/SessionWatcher";
 import VersionCheck from "./components/VersionCheck";
 import { checkEnvVars } from "./lib/envCheck";
+import OneSignalInit from "./components/OneSignalInit";
 
 checkEnvVars()
 
@@ -37,6 +38,7 @@ export default function RootLayout({
       </head>
       <body>
         <ErrorBoundary>
+    <OneSignalInit />
           <SessionWatcher />
           <VersionCheck />
           {children}
