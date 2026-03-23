@@ -10,6 +10,7 @@ export default function SignupPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [goal, setGoal] = useState('')
+  const [religion, setReligion] = useState('')
   const router = useRouter()
   const supabase = createClient()
 
@@ -18,7 +19,7 @@ export default function SignupPage() {
     setLoading(true); setError('')
     const { error } = await supabase.auth.signUp({
       email, password,
-      options: { data: { full_name: name, goal } }
+      options: { data: { full_name: name, goal, religion } }
     })
     if (error) { setError(error.message); setLoading(false) }
     else router.push('/dashboard')
@@ -88,6 +89,31 @@ export default function SignupPage() {
                 fontSize: 12, fontWeight: 500, cursor: 'pointer',
                 fontFamily: "'DM Sans', Arial, sans-serif",
               }}>{g}</button>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: '#3d3d3a', marginBottom: 8 }}>
+            What is your religion? <span style={{ color: '#7a7a72', fontWeight: 400 }}>(optional)</span>
+          </div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {[
+              { label: 'Islam', icon: '🌙' },
+              { label: 'Christianity', icon: '✝️' },
+              { label: 'Hinduism', icon: '🕉️' },
+              { label: 'Buddhism', icon: '☸️' },
+              { label: 'Others', icon: '✡️' },
+              { label: 'Prefer not to say', icon: '🤐' },
+            ].map(r => (
+              <button key={r.label} onClick={() => setReligion(r.label)} style={{
+                padding: '7px 14px', borderRadius: 30,
+                border: `1.5px solid ${religion === r.label ? '#4a7c2f' : '#e4e0d8'}`,
+                background: religion === r.label ? '#e8f5e0' : 'white',
+                color: religion === r.label ? '#4a7c2f' : '#3d3d3a',
+                fontSize: 12, fontWeight: 500, cursor: 'pointer',
+                fontFamily: "'DM Sans', Arial, sans-serif",
+              }}>{r.icon} {r.label}</button>
             ))}
           </div>
         </div>

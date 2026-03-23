@@ -21,7 +21,6 @@ export function RamadanProvider({ children }: { children: React.ReactNode }) {
   const checkRamadanActive = () => {
     const today = new Date();
     const year = today.getFullYear();
-    // 2027 Ramadan: approximately Feb 18 - Mar 19
     const ramadanDates: Record<number, { start: Date; end: Date }> = {
       2027: { start: new Date(2027, 1, 18), end: new Date(2027, 2, 19) },
       2028: { start: new Date(2028, 1, 7), end: new Date(2028, 2, 7) },
@@ -38,9 +37,16 @@ export function RamadanProvider({ children }: { children: React.ReactNode }) {
     if (saved) {
       setIsRamadanMode(JSON.parse(saved));
     } else if (isRamadanActive) {
-      // Auto-enable during Ramadan if user hasn't set a preference yet
-      setIsRamadanMode(true);
-      localStorage.setItem('ramadanMode', JSON.stringify(true));
+      // Only auto-enable for Muslim users
+      fetch('/api/profile')
+        .then(res => res.json())
+        .then(({ data }) => {
+          if (data?.religion === 'Islam') {
+            setIsRamadanMode(true);
+            localStorage.setItem('ramadanMode', JSON.stringify(true));
+          }
+        })
+        .catch(() => {});
     }
   }, []);
 

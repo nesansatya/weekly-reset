@@ -26,6 +26,7 @@ export default function ProfilePage() {
   const [periodEnd, setPeriodEnd] = useState<string | null>(null)
   const [portalLoading, setPortalLoading] = useState(false)
 const { isRamadanMode, toggleRamadanMode } = useRamadan()
+  const [religion, setReligion] = useState('')
   const saveRef = useRef(false)
 
   useEffect(() => {
@@ -46,6 +47,7 @@ const { isRamadanMode, toggleRamadanMode } = useRamadan()
         setWeightInput(String(data.weight_kg))
       }
       if (data?.is_pro) setIsPro(data.is_pro)
+      if (data?.religion) setReligion(data.religion)
       if (data?.subscription_status) setSubscriptionStatus(data.subscription_status)
       if (data?.subscription_period_end) setPeriodEnd(data.subscription_period_end)
     }
@@ -70,7 +72,7 @@ const { isRamadanMode, toggleRamadanMode } = useRamadan()
         fetch('/api/profile', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ weight_kg: kg }),
+          body: JSON.stringify({ weight_kg: kg, religion }),
         })
       ])
       const { data } = await profileRes.json()
@@ -200,6 +202,29 @@ const { isRamadanMode, toggleRamadanMode } = useRamadan()
             Current: {weightKg}kg / {Math.round(weightKg * 2.205)}lbs · Water goal: {Math.round(weightKg * 0.033 * 10) / 10}L
           </div>
         )}
+      </div>
+
+      <div style={s({ margin: '12px 22px 0', background: 'white', borderRadius: 14, border: '1px solid #e4e0d8', padding: 16 })}>
+        <div style={s({ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: '#7a7a72', textTransform: 'uppercase', marginBottom: 12 })}>Your religion <span style={{ fontSize: 10, fontWeight: 400, textTransform: 'none' }}>(optional)</span></div>
+        <div style={s({ display: 'flex', gap: 8, flexWrap: 'wrap' })}>
+          {[
+            { label: 'Islam', icon: '🌙' },
+            { label: 'Christianity', icon: '✝️' },
+            { label: 'Hinduism', icon: '🕉️' },
+            { label: 'Buddhism', icon: '☸️' },
+            { label: 'Others', icon: '✡️' },
+            { label: 'Prefer not to say', icon: '🤐' },
+          ].map(r => (
+            <button key={r.label} onClick={() => setReligion(r.label)} style={s({
+              padding: '7px 14px', borderRadius: 30,
+              border: `1.5px solid ${religion === r.label ? '#4a7c2f' : '#e4e0d8'}`,
+              background: religion === r.label ? '#e8f5e0' : 'white',
+              color: religion === r.label ? '#4a7c2f' : '#3d3d3a',
+              fontSize: 12, fontWeight: 500, cursor: 'pointer',
+              fontFamily: "'DM Sans', Arial, sans-serif",
+            })}>{r.icon} {r.label}</button>
+          ))}
+        </div>
       </div>
 
       <div style={s({ margin: '16px 22px 0' })}>

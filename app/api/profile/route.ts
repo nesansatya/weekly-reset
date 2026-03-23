@@ -39,7 +39,7 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from('users')
-    .select('weight_kg, full_name, is_pro, subscription_status, subscription_period_end')
+    .select('weight_kg, full_name, is_pro, subscription_status, subscription_period_end, religion')
     .eq('id', user.id)
     .single()
 
@@ -75,9 +75,13 @@ export async function POST(request: Request) {
     { status: 400 }
   )
 
+  // Sanitize religion input
+  const allowedReligions = ['Islam', 'Christianity', 'Hinduism', 'Buddhism', 'Others', 'Prefer not to say']
+  const religion = allowedReligions.includes(body.religion) ? body.religion : null
+
   const { data, error } = await supabase
     .from('users')
-    .update({ weight_kg: weight })
+    .update({ weight_kg: weight, ...(religion && { religion }) })
     .eq('id', user.id)
     .select()
     .single()
