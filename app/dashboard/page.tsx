@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '../lib/supabase/client'
 import AuthGuard from '../components/AuthGuard'
+import RamadanBanner from '../components/RamadanBanner'
 
 const days = [
   { name: 'Monday', type: 'Strength', duration: '30–40 min', exercises: [
@@ -421,6 +422,9 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* Ramadan Banner */}
+      <RamadanBanner />
 
       {/* Day selector */}
       <div style={s({ display: 'flex', gap: 6, padding: '16px 22px 0', overflowX: 'auto', scrollbarWidth: 'none' })}>
