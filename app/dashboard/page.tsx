@@ -223,6 +223,12 @@ export default function Dashboard() {
   const [weightUnit, setWeightUnit] = useState<'kg' | 'lbs'>('kg')
   const [isOffline, setIsOffline] = useState(false)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [fitnessLevel, setFitnessLevel] = useState('')
+  const [sleepQuality, setSleepQuality] = useState('')
+  const [healthChallenge, setHealthChallenge] = useState('')
+  const [workSchedule, setWorkSchedule] = useState('')
+  const [waterIntake, setWaterIntake] = useState('')
+  const [stressLevel, setStressLevel] = useState('')
 
   // #5 — Offline detection
   useEffect(() => {
@@ -270,6 +276,12 @@ export default function Dashboard() {
         } else {
           setShowWeightPrompt(true)
         }
+        if (profile.data?.fitness_level) setFitnessLevel(profile.data.fitness_level)
+        if (profile.data?.sleep_quality) setSleepQuality(profile.data.sleep_quality)
+        if (profile.data?.health_challenge) setHealthChallenge(profile.data.health_challenge)
+        if (profile.data?.work_schedule) setWorkSchedule(profile.data.work_schedule)
+        if (profile.data?.water_intake) setWaterIntake(profile.data.water_intake)
+        if (profile.data?.stress_level) setStressLevel(profile.data.stress_level)
         setProfileLoaded(true)
       } catch (_e) {
         setShowWeightPrompt(true)
@@ -425,6 +437,38 @@ export default function Dashboard() {
 
       {/* Ramadan Banner */}
       <RamadanBanner />
+
+      {/* Personalised Insight Banner */}
+      {(sleepQuality === 'Very poor' || sleepQuality === 'Could be better') && (
+        <div style={s({ margin: '12px 22px 0', background: '#e0eeff', border: '1px solid #85B7EB', borderRadius: 14, padding: '12px 16px' })}>
+          <div style={s({ fontSize: 13, fontWeight: 700, color: '#0C447C', marginBottom: 2 })}>😴 Sleep is your #1 priority</div>
+          <div style={s({ fontSize: 12, color: '#185FA5', lineHeight: 1.5 })}>Based on your profile, improving sleep will have the biggest impact on your energy and mood.</div>
+        </div>
+      )}
+      {(stressLevel === 'Very high' || stressLevel === 'High') && (
+        <div style={s({ margin: '12px 22px 0', background: '#f0e8ff', border: '1px solid #b085eb', borderRadius: 14, padding: '12px 16px' })}>
+          <div style={s({ fontSize: 13, fontWeight: 700, color: '#4a0c7c', marginBottom: 2 })}>🧘 High stress detected</div>
+          <div style={s({ fontSize: 12, color: '#6a1fa5', lineHeight: 1.5 })}>Take it easy today. Recovery and light movement will serve you better than intense workouts right now.</div>
+        </div>
+      )}
+      {workSchedule === 'Desk job — mostly sitting' && (
+        <div style={s({ margin: '12px 22px 0', background: '#fff4e0', border: '1px solid #f5d58a', borderRadius: 14, padding: '12px 16px' })}>
+          <div style={s({ fontSize: 13, fontWeight: 700, color: '#633806', marginBottom: 2 })}>💼 Desk job reminder</div>
+          <div style={s({ fontSize: 12, color: '#BA7517', lineHeight: 1.5 })}>You sit most of the day — make your steps goal and morning sunlight non-negotiable today.</div>
+        </div>
+      )}
+      {(waterIntake === 'Less than 1L' || waterIntake === '1–1.5L') && (
+        <div style={s({ margin: '12px 22px 0', background: '#e0f4ff', border: '1px solid #85d4eb', borderRadius: 14, padding: '12px 16px' })}>
+          <div style={s({ fontSize: 13, fontWeight: 700, color: '#0c4a5c', marginBottom: 2 })}>💧 You need more water</div>
+          <div style={s({ fontSize: 12, color: '#185a7c', lineHeight: 1.5 })}>Your profile shows low daily water intake. Hit your water goal today — it will improve your energy within hours.</div>
+        </div>
+      )}
+      {fitnessLevel === 'Complete beginner' && (
+        <div style={s({ margin: '12px 22px 0', background: '#e8f5e0', border: '1px solid #97C459', borderRadius: 14, padding: '12px 16px' })}>
+          <div style={s({ fontSize: 13, fontWeight: 700, color: '#27500A', marginBottom: 2 })}>🌱 Beginner tip</div>
+          <div style={s({ fontSize: 12, color: '#3B6D11', lineHeight: 1.5 })}>Don't worry about doing everything perfectly. Completing 50% of today's workout is a huge win. Just start!</div>
+        </div>
+      )}
 
       {/* Day selector */}
       <div style={s({ display: 'flex', gap: 6, padding: '16px 22px 0', overflowX: 'auto', scrollbarWidth: 'none' })}>

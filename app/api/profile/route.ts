@@ -39,7 +39,7 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from('users')
-    .select('weight_kg, full_name, is_pro, subscription_status, subscription_period_end, religion')
+    .select('weight_kg, full_name, is_pro, subscription_status, subscription_period_end, religion, age_range, fitness_level, workout_days_per_week, sleep_quality, health_challenge, work_schedule, body_feeling, eating_habits, water_intake, stress_level')
     .eq('id', user.id)
     .single()
 
