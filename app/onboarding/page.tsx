@@ -82,23 +82,22 @@ export default function OnboardingPage() {
   const [saving, setSaving] = useState(false)
   const [showSummary, setShowSummary] = useState(false)
 
-  async function saveandgo() {
-    setsaving(true)
+  const current = questions[step]
+
+  async function saveAndGo() {
+    setSaving(true)
     try {
       await fetch('/api/onboarding', {
-        method: 'post',
-        headers: { 'content-type': 'application/json' },
-        body: json.stringify(answers),
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(answers),
       })
     } catch (_e) {}
-    setsaving(false)
+    setSaving(false)
     router.push('/dashboard')
   }
 
-  const current = questions[step]
-  const progress = ((step) / questions.length) * 100
-
-  async function handleAnswer(value: string) {
+  function handleAnswer(value: string) {
     const newAnswers = {
       ...answers,
       [current.id]: current.id === 'workout_days_per_week'
@@ -106,7 +105,6 @@ export default function OnboardingPage() {
         : value,
     }
     setAnswers(newAnswers)
-
     if (step < questions.length - 1) {
       setStep(step + 1)
     } else {
@@ -114,68 +112,64 @@ export default function OnboardingPage() {
     }
   }
 
-  if (showsummary) return (
+  if (showSummary) return (
     <main style={{
-      minheight: '100dvh',
+      minHeight: '100dvh',
       background: '#faf8f4',
-      fontfamily: "'dm sans', arial, sans-serif",
+      fontFamily: "'DM Sans', Arial, sans-serif",
       padding: 'calc(env(safe-area-inset-top) + 40px) 24px 60px',
     }}>
-      {/* header */}
-      <div style={{ marginbottom: 28 }}>
-        <div style={{ fontsize: 40, marginbottom: 12 }}>🎉</div>
+      <div style={{ marginBottom: 28 }}>
+        <div style={{ fontSize: 40, marginBottom: 12 }}>🎉</div>
         <div style={{
-          fontsize: 26, fontweight: 700, color: '#1a1a18',
-          fontfamily: "'dm serif display', georgia, serif",
-          marginbottom: 6, lineheight: 1.3,
-        }}>you're all set!</div>
-        <div style={{ fontsize: 13, color: '#7a7a72', lineheight: 1.5 }}>
-          here's what we know about you. we've personalised your dashboard based on these answers.
+          fontSize: 26, fontWeight: 700, color: '#1a1a18',
+          fontFamily: "'DM Serif Display', Georgia, serif",
+          marginBottom: 6, lineHeight: 1.3,
+        }}>You're all set!</div>
+        <div style={{ fontSize: 13, color: '#7a7a72', lineHeight: 1.5 }}>
+          Here's what we know about you. We've personalised your dashboard based on these answers.
         </div>
       </div>
 
-      {/* summary cards */}
-      <div style={{ background: 'white', borderradius: 16, border: '1px solid #e4e0d8', overflow: 'hidden', marginbottom: 20 }}>
+      <div style={{ background: 'white', borderRadius: 16, border: '1px solid #e4e0d8', overflow: 'hidden', marginBottom: 20 }}>
         {questions.map((q, i) => (
           <div key={q.id} style={{
-            display: 'flex', alignitems: 'center', gap: 12,
+            display: 'flex', alignItems: 'center', gap: 12,
             padding: '13px 16px',
-            borderbottom: i < questions.length - 1 ? '1px solid #f5f2ec' : 'none',
+            borderBottom: i < questions.length - 1 ? '1px solid #f5f2ec' : 'none',
           }}>
-            <div style={{ fontsize: 20, width: 28, textalign: 'center' }}>{q.emoji}</div>
+            <div style={{ fontSize: 20, width: 28, textAlign: 'center' }}>{q.emoji}</div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontsize: 11, color: '#7a7a72', fontweight: 500 }}>{q.question}</div>
-              <div style={{ fontsize: 13, fontweight: 600, color: '#1a1a18', margintop: 2 }}>
-                {answers[q.id] || '—'}
+              <div style={{ fontSize: 11, color: '#7a7a72', fontWeight: 500 }}>{q.question}</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#1a1a18', marginTop: 2 }}>
+                {String(answers[q.id] || '—')}
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* personalised message */}
       <div style={{
-        background: '#1a1a18', borderradius: 16,
-        padding: 20, marginbottom: 24,
+        background: '#1a1a18', borderRadius: 16,
+        padding: 20, marginBottom: 24,
         border: '1px solid rgba(125,184,74,0.3)',
       }}>
-        <div style={{ fontsize: 13, color: 'rgba(255,255,255,0.6)', lineheight: 1.6, fontstyle: 'italic' }}>
-          "we've built your personalised wellness plan based on your answers. your dashboard, workouts and habits are now tailored specifically for you. let's reset together — slowly and surely."
+        <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, fontStyle: 'italic' }}>
+          "We've built your personalised wellness plan based on your answers. Your dashboard, workouts and habits are now tailored specifically for you. Let's reset together — slowly and surely."
         </div>
-        <div style={{ fontsize: 11, color: '#7db84a', fontweight: 600, margintop: 10 }}>— weekly reset</div>
+        <div style={{ fontSize: 11, color: '#7db84a', fontWeight: 600, marginTop: 10 }}>— Weekly Reset</div>
       </div>
 
-      {/* cta button */}
-      <button onclick={saveandgo} disabled={saving} style={{
+      <button onClick={saveAndGo} disabled={saving} style={{
         width: '100%', padding: 16,
         background: '#4a7c2f', color: 'white',
-        border: 'none', borderradius: 14,
-        fontsize: 15, fontweight: 700,
+        border: 'none', borderRadius: 14,
+        fontSize: 15, fontWeight: 700,
         cursor: saving ? 'not-allowed' : 'pointer',
         opacity: saving ? 0.7 : 1,
-        fontfamily: "'dm sans', arial, sans-serif",
+        fontFamily: "'DM Sans', Arial, sans-serif",
       }}>
-        {saving ? 'setting up your dashboard...' : 'go to my dashboard →'}
+        {saving ? 'Setting up your dashboard...' : 'Go to my dashboard →'}
       </button>
     </main>
   )
@@ -189,8 +183,6 @@ export default function OnboardingPage() {
       flexDirection: 'column',
       padding: '0 0 60px',
     }}>
-
-      {/* Progress bar */}
       <div style={{
         padding: 'calc(env(safe-area-inset-top) + 40px) 24px 0',
       }}>
@@ -212,7 +204,6 @@ export default function OnboardingPage() {
         </div>
       </div>
 
-      {/* Question */}
       <div style={{ flex: 1, padding: '40px 24px 0' }}>
         <div style={{ fontSize: 48, marginBottom: 16 }}>{current.emoji}</div>
         <div style={{
@@ -226,7 +217,6 @@ export default function OnboardingPage() {
           {current.sub}
         </div>
 
-        {/* Options */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {current.options.map(option => (
             <button
@@ -258,7 +248,6 @@ export default function OnboardingPage() {
         </div>
       </div>
 
-      {/* Back button */}
       {step > 0 && (
         <div style={{ padding: '20px 24px 0' }}>
           <button onClick={() => setStep(step - 1)} style={{
@@ -271,7 +260,6 @@ export default function OnboardingPage() {
           </button>
         </div>
       )}
-
     </main>
   )
 }
