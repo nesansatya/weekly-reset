@@ -80,6 +80,20 @@ export default function OnboardingPage() {
   const [step, setStep] = useState(0)
   const [answers, setAnswers] = useState<Record<string, string | number>>({})
   const [saving, setSaving] = useState(false)
+  const [showSummary, setShowSummary] = useState(false)
+
+  async function saveandgo() {
+    setsaving(true)
+    try {
+      await fetch('/api/onboarding', {
+        method: 'post',
+        headers: { 'content-type': 'application/json' },
+        body: json.stringify(answers),
+      })
+    } catch (_e) {}
+    setsaving(false)
+    router.push('/dashboard')
+  }
 
   const current = questions[step]
   const progress = ((step) / questions.length) * 100
@@ -96,19 +110,75 @@ export default function OnboardingPage() {
     if (step < questions.length - 1) {
       setStep(step + 1)
     } else {
-      // Save all answers
-      setSaving(true)
-      try {
-        await fetch('/api/onboarding', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newAnswers),
-        })
-      } catch (_e) {}
-      setSaving(false)
-      router.push('/dashboard')
+      setShowSummary(true)
     }
   }
+
+  if (showsummary) return (
+    <main style={{
+      minheight: '100dvh',
+      background: '#faf8f4',
+      fontfamily: "'dm sans', arial, sans-serif",
+      padding: 'calc(env(safe-area-inset-top) + 40px) 24px 60px',
+    }}>
+      {/* header */}
+      <div style={{ marginbottom: 28 }}>
+        <div style={{ fontsize: 40, marginbottom: 12 }}>🎉</div>
+        <div style={{
+          fontsize: 26, fontweight: 700, color: '#1a1a18',
+          fontfamily: "'dm serif display', georgia, serif",
+          marginbottom: 6, lineheight: 1.3,
+        }}>you're all set!</div>
+        <div style={{ fontsize: 13, color: '#7a7a72', lineheight: 1.5 }}>
+          here's what we know about you. we've personalised your dashboard based on these answers.
+        </div>
+      </div>
+
+      {/* summary cards */}
+      <div style={{ background: 'white', borderradius: 16, border: '1px solid #e4e0d8', overflow: 'hidden', marginbottom: 20 }}>
+        {questions.map((q, i) => (
+          <div key={q.id} style={{
+            display: 'flex', alignitems: 'center', gap: 12,
+            padding: '13px 16px',
+            borderbottom: i < questions.length - 1 ? '1px solid #f5f2ec' : 'none',
+          }}>
+            <div style={{ fontsize: 20, width: 28, textalign: 'center' }}>{q.emoji}</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontsize: 11, color: '#7a7a72', fontweight: 500 }}>{q.question}</div>
+              <div style={{ fontsize: 13, fontweight: 600, color: '#1a1a18', margintop: 2 }}>
+                {answers[q.id] || '—'}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* personalised message */}
+      <div style={{
+        background: '#1a1a18', borderradius: 16,
+        padding: 20, marginbottom: 24,
+        border: '1px solid rgba(125,184,74,0.3)',
+      }}>
+        <div style={{ fontsize: 13, color: 'rgba(255,255,255,0.6)', lineheight: 1.6, fontstyle: 'italic' }}>
+          "we've built your personalised wellness plan based on your answers. your dashboard, workouts and habits are now tailored specifically for you. let's reset together — slowly and surely."
+        </div>
+        <div style={{ fontsize: 11, color: '#7db84a', fontweight: 600, margintop: 10 }}>— weekly reset</div>
+      </div>
+
+      {/* cta button */}
+      <button onclick={saveandgo} disabled={saving} style={{
+        width: '100%', padding: 16,
+        background: '#4a7c2f', color: 'white',
+        border: 'none', borderradius: 14,
+        fontsize: 15, fontweight: 700,
+        cursor: saving ? 'not-allowed' : 'pointer',
+        opacity: saving ? 0.7 : 1,
+        fontfamily: "'dm sans', arial, sans-serif",
+      }}>
+        {saving ? 'setting up your dashboard...' : 'go to my dashboard →'}
+      </button>
+    </main>
+  )
 
   return (
     <main style={{
