@@ -443,34 +443,74 @@ export default function Dashboard() {
       {/* Personalised Insight Banner */}
       {(() => {
         const banners = []
+
+        // Sleep
         if (sleepQuality === 'Very poor' || sleepQuality === 'Could be better') banners.push(
           <div key="sleep" style={s({ margin: '12px 22px 0', background: '#e0eeff', border: '1px solid #85B7EB', borderRadius: 14, padding: '12px 16px' })}>
             <div style={s({ fontSize: 13, fontWeight: 700, color: '#0C447C', marginBottom: 2 })}>😴 Sleep is your #1 priority</div>
             <div style={s({ fontSize: 12, color: '#185FA5', lineHeight: 1.5 })}>Based on your profile, improving sleep will have the biggest impact on your energy and mood.</div>
           </div>
         )
+        if (sleepQuality === 'Decent' || sleepQuality === 'Pretty good') banners.push(
+          <div key="sleep" style={s({ margin: '12px 22px 0', background: '#e8f5e0', border: '1px solid #97C459', borderRadius: 14, padding: '12px 16px' })}>
+            <div style={s({ fontSize: 13, fontWeight: 700, color: '#27500A', marginBottom: 2 })}>😴 Great sleep habits!</div>
+            <div style={s({ fontSize: 12, color: '#3B6D11', lineHeight: 1.5 })}>You're sleeping well — keep protecting that routine. Good sleep is the foundation of everything else.</div>
+          </div>
+        )
+
+        // Stress
         if (stressLevel === 'Very high' || stressLevel === 'High') banners.push(
           <div key="stress" style={s({ margin: '12px 22px 0', background: '#f0e8ff', border: '1px solid #b085eb', borderRadius: 14, padding: '12px 16px' })}>
             <div style={s({ fontSize: 13, fontWeight: 700, color: '#4a0c7c', marginBottom: 2 })}>🧘 High stress detected</div>
             <div style={s({ fontSize: 12, color: '#6a1fa5', lineHeight: 1.5 })}>Take it easy today. Recovery and light movement will serve you better than intense workouts right now.</div>
           </div>
         )
+        if (stressLevel === 'Moderate' || stressLevel === 'Low') banners.push(
+          <div key="stress" style={s({ margin: '12px 22px 0', background: '#e8f5e0', border: '1px solid #97C459', borderRadius: 14, padding: '12px 16px' })}>
+            <div style={s({ fontSize: 13, fontWeight: 700, color: '#27500A', marginBottom: 2 })}>🧘 Great headspace today!</div>
+            <div style={s({ fontSize: 12, color: '#3B6D11', lineHeight: 1.5 })}>Your stress is under control — this is the perfect mental state to build strong habits. Make it count!</div>
+          </div>
+        )
+
+        // Work schedule
         if (workSchedule === 'Desk job — mostly sitting') banners.push(
-          <div key="desk" style={s({ margin: '12px 22px 0', background: '#fff4e0', border: '1px solid #f5d58a', borderRadius: 14, padding: '12px 16px' })}>
+          <div key="work" style={s({ margin: '12px 22px 0', background: '#fff4e0', border: '1px solid #f5d58a', borderRadius: 14, padding: '12px 16px' })}>
             <div style={s({ fontSize: 13, fontWeight: 700, color: '#633806', marginBottom: 2 })}>💼 Desk job reminder</div>
             <div style={s({ fontSize: 12, color: '#BA7517', lineHeight: 1.5 })}>You sit most of the day — make your steps goal and morning sunlight non-negotiable today.</div>
           </div>
         )
+        if (workSchedule === 'On my feet most of the day' || workSchedule === 'Physical/manual work') banners.push(
+          <div key="work" style={s({ margin: '12px 22px 0', background: '#e8f5e0', border: '1px solid #97C459', borderRadius: 14, padding: '12px 16px' })}>
+            <div style={s({ fontSize: 13, fontWeight: 700, color: '#27500A', marginBottom: 2 })}>💪 Active job advantage!</div>
+            <div style={s({ fontSize: 12, color: '#3B6D11', lineHeight: 1.5 })}>Your body is already moving at work — focus on recovery, sleep and nutrition to complement your active lifestyle.</div>
+          </div>
+        )
+
+        // Water intake
         if (waterIntake === 'Less than 1L' || waterIntake === '1–1.5L') banners.push(
           <div key="water" style={s({ margin: '12px 22px 0', background: '#e0f4ff', border: '1px solid #85d4eb', borderRadius: 14, padding: '12px 16px' })}>
             <div style={s({ fontSize: 13, fontWeight: 700, color: '#0c4a5c', marginBottom: 2 })}>💧 You need more water</div>
             <div style={s({ fontSize: 12, color: '#185a7c', lineHeight: 1.5 })}>Your profile shows low daily water intake. Hit your water goal today — it will improve your energy within hours.</div>
           </div>
         )
+        if (waterIntake === '1.5–2L' || waterIntake === 'More than 2L') banners.push(
+          <div key="water" style={s({ margin: '12px 22px 0', background: '#e8f5e0', border: '1px solid #97C459', borderRadius: 14, padding: '12px 16px' })}>
+            <div style={s({ fontSize: 13, fontWeight: 700, color: '#27500A', marginBottom: 2 })}>💧 Great hydration habits!</div>
+            <div style={s({ fontSize: 12, color: '#3B6D11', lineHeight: 1.5 })}>You're already drinking well — keep it consistent and your energy levels will stay stable all day.</div>
+          </div>
+        )
+
+        // Fitness level
         if (fitnessLevel === 'Complete beginner') banners.push(
-          <div key="beginner" style={s({ margin: '12px 22px 0', background: '#e8f5e0', border: '1px solid #97C459', borderRadius: 14, padding: '12px 16px' })}>
-            <div style={s({ fontSize: 13, fontWeight: 700, color: '#27500A', marginBottom: 2 })}>🌱 Beginner tip</div>
-            <div style={s({ fontSize: 12, color: '#3B6D11', lineHeight: 1.5 })}>Don't worry about doing everything perfectly. Completing 50% of today's workout is a huge win. Just start!</div>
+          <div key="fitness" style={s({ margin: '12px 22px 0', background: '#fff4e0', border: '1px solid #f5d58a', borderRadius: 14, padding: '12px 16px' })}>
+            <div style={s({ fontSize: 13, fontWeight: 700, color: '#633806', marginBottom: 2 })}>🌱 Beginner tip</div>
+            <div style={s({ fontSize: 12, color: '#BA7517', lineHeight: 1.5 })}>Don't worry about doing everything perfectly. Completing 50% of today's workout is a huge win. Just start!</div>
+          </div>
+        )
+        if (fitnessLevel === 'Intermediate' || fitnessLevel === 'Pretty active') banners.push(
+          <div key="fitness" style={s({ margin: '12px 22px 0', background: '#1a1a18', border: '1px solid #7db84a', borderRadius: 14, padding: '12px 16px' })}>
+            <div style={s({ fontSize: 13, fontWeight: 700, color: '#a8c48a', marginBottom: 2 })}>🔥 You're experienced — push harder!</div>
+            <div style={s({ fontSize: 12, color: 'rgba(255,255,255,0.6)', lineHeight: 1.5 })}>Your fitness base is solid. Add an extra set, push the pace, or add a bonus workout today.</div>
           </div>
         )
         // Free users get 1 banner only, Pro users get all
