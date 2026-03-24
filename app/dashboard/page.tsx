@@ -229,6 +229,7 @@ export default function Dashboard() {
   const [workSchedule, setWorkSchedule] = useState('')
   const [waterIntake, setWaterIntake] = useState('')
   const [stressLevel, setStressLevel] = useState('')
+  const [isPro, setIsPro] = useState(false)
 
   // #5 — Offline detection
   useEffect(() => {
@@ -276,6 +277,7 @@ export default function Dashboard() {
         } else {
           setShowWeightPrompt(true)
         }
+        if (profile.data?.is_pro) setIsPro(profile.data.is_pro)
         if (profile.data?.fitness_level) setFitnessLevel(profile.data.fitness_level)
         if (profile.data?.sleep_quality) setSleepQuality(profile.data.sleep_quality)
         if (profile.data?.health_challenge) setHealthChallenge(profile.data.health_challenge)
@@ -439,7 +441,43 @@ export default function Dashboard() {
       <RamadanBanner />
 
       {/* Personalised Insight Banner */}
-      {(sleepQuality === 'Very poor' || sleepQuality === 'Could be better') && (
+      {(() => {
+        const banners = []
+        if (sleepQuality === 'Very poor' || sleepQuality === 'Could be better') banners.push(
+          <div key="sleep" style={s({ margin: '12px 22px 0', background: '#e0eeff', border: '1px solid #85B7EB', borderRadius: 14, padding: '12px 16px' })}>
+            <div style={s({ fontSize: 13, fontWeight: 700, color: '#0C447C', marginBottom: 2 })}>😴 Sleep is your #1 priority</div>
+            <div style={s({ fontSize: 12, color: '#185FA5', lineHeight: 1.5 })}>Based on your profile, improving sleep will have the biggest impact on your energy and mood.</div>
+          </div>
+        )
+        if (stressLevel === 'Very high' || stressLevel === 'High') banners.push(
+          <div key="stress" style={s({ margin: '12px 22px 0', background: '#f0e8ff', border: '1px solid #b085eb', borderRadius: 14, padding: '12px 16px' })}>
+            <div style={s({ fontSize: 13, fontWeight: 700, color: '#4a0c7c', marginBottom: 2 })}>🧘 High stress detected</div>
+            <div style={s({ fontSize: 12, color: '#6a1fa5', lineHeight: 1.5 })}>Take it easy today. Recovery and light movement will serve you better than intense workouts right now.</div>
+          </div>
+        )
+        if (workSchedule === 'Desk job — mostly sitting') banners.push(
+          <div key="desk" style={s({ margin: '12px 22px 0', background: '#fff4e0', border: '1px solid #f5d58a', borderRadius: 14, padding: '12px 16px' })}>
+            <div style={s({ fontSize: 13, fontWeight: 700, color: '#633806', marginBottom: 2 })}>💼 Desk job reminder</div>
+            <div style={s({ fontSize: 12, color: '#BA7517', lineHeight: 1.5 })}>You sit most of the day — make your steps goal and morning sunlight non-negotiable today.</div>
+          </div>
+        )
+        if (waterIntake === 'Less than 1L' || waterIntake === '1–1.5L') banners.push(
+          <div key="water" style={s({ margin: '12px 22px 0', background: '#e0f4ff', border: '1px solid #85d4eb', borderRadius: 14, padding: '12px 16px' })}>
+            <div style={s({ fontSize: 13, fontWeight: 700, color: '#0c4a5c', marginBottom: 2 })}>💧 You need more water</div>
+            <div style={s({ fontSize: 12, color: '#185a7c', lineHeight: 1.5 })}>Your profile shows low daily water intake. Hit your water goal today — it will improve your energy within hours.</div>
+          </div>
+        )
+        if (fitnessLevel === 'Complete beginner') banners.push(
+          <div key="beginner" style={s({ margin: '12px 22px 0', background: '#e8f5e0', border: '1px solid #97C459', borderRadius: 14, padding: '12px 16px' })}>
+            <div style={s({ fontSize: 13, fontWeight: 700, color: '#27500A', marginBottom: 2 })}>🌱 Beginner tip</div>
+            <div style={s({ fontSize: 12, color: '#3B6D11', lineHeight: 1.5 })}>Don't worry about doing everything perfectly. Completing 50% of today's workout is a huge win. Just start!</div>
+          </div>
+        )
+        // Free users get 1 banner only, Pro users get all
+        const visibleBanners = isPro ? banners : banners.slice(0, 1)
+        return <>{visibleBanners}</>
+      })()}
+      {!isPro && fitnessLevel && (
         <div style={s({ margin: '12px 22px 0', background: '#e0eeff', border: '1px solid #85B7EB', borderRadius: 14, padding: '12px 16px' })}>
           <div style={s({ fontSize: 13, fontWeight: 700, color: '#0C447C', marginBottom: 2 })}>😴 Sleep is your #1 priority</div>
           <div style={s({ fontSize: 12, color: '#185FA5', lineHeight: 1.5 })}>Based on your profile, improving sleep will have the biggest impact on your energy and mood.</div>
@@ -463,10 +501,11 @@ export default function Dashboard() {
           <div style={s({ fontSize: 12, color: '#185a7c', lineHeight: 1.5 })}>Your profile shows low daily water intake. Hit your water goal today — it will improve your energy within hours.</div>
         </div>
       )}
-      {fitnessLevel === 'Complete beginner' && (
-        <div style={s({ margin: '12px 22px 0', background: '#e8f5e0', border: '1px solid #97C459', borderRadius: 14, padding: '12px 16px' })}>
-          <div style={s({ fontSize: 13, fontWeight: 700, color: '#27500A', marginBottom: 2 })}>🌱 Beginner tip</div>
-          <div style={s({ fontSize: 12, color: '#3B6D11', lineHeight: 1.5 })}>Don't worry about doing everything perfectly. Completing 50% of today's workout is a huge win. Just start!</div>
+      {!isPro && (
+        <div style={s({ margin: '12px 22px 0', background: 'linear-gradient(135deg, #e8f5e0, #f0f7e8)', border: '1px solid #97C459', borderRadius: 14, padding: '12px 16px' })}>
+          <div style={s({ fontSize: 13, fontWeight: 700, color: '#27500A', marginBottom: 2 })}>✦ Unlock all personalised insights</div>
+          <div style={s({ fontSize: 12, color: '#3B6D11', marginBottom: 8, lineHeight: 1.5 })}>Pro users see all 5 personalised banners tailored to their profile every day.</div>
+          <button onClick={() => router.push('/upgrade')} style={s({ padding: '7px 14px', background: '#4a7c2f', color: 'white', border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif" })}>Upgrade to Pro →</button>
         </div>
       )}
 
