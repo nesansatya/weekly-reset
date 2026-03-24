@@ -117,13 +117,12 @@ export default function OnboardingPage() {
       fontFamily: "'DM Sans', Arial, sans-serif",
       display: 'flex',
       flexDirection: 'column',
-      padding: '0 0 40px',
+      padding: '0 0 60px',
     }}>
 
       {/* Progress bar */}
       <div style={{
-        paddingTop: 'calc(env(safe-area-inset-top) + 16px)',
-        padding: '20px 24px 0',
+        padding: 'calc(env(safe-area-inset-top) + 40px) 24px 0',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
           <div style={{ fontSize: 12, fontWeight: 600, color: '#7a7a72' }}>
