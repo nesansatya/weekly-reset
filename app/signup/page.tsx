@@ -22,7 +22,7 @@ export default function SignupPage() {
       options: { data: { full_name: name, goal, religion } }
     })
     if (error) { setError(error.message); setLoading(false) }
-    else router.push('/dashboard')
+    else router.push('/onboarding')
   }
 
   const input = {
