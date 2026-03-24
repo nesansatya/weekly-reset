@@ -4,27 +4,36 @@ import { useEffect } from 'react';
 
 export default function OneSignalInit() {
   useEffect(() => {
-    const initOneSignal = async () => {
+    const init = () => {
       try {
-        const { default: OneSignal } = await import('onesignal-cordova-plugin');
-        OneSignal.initialize('21aaff8b-9072-4e3b-a57d-f713b5b9abb3');
-        await OneSignal.Notifications.requestPermission(true);
+        // @ts-ignore
+        const OneSignal = (window as any).plugins?.OneSignal;
+        if (!OneSignal) {
+          console.log('OneSignal plugin not found');
+          return;
+        }
+
+        OneSignal.setAppId('21aaff8b-9072-4e3b-a57d-f713b5b9abb3');
+
+        OneSignal.setNotificationOpenedHandler((result: any) => {
+          console.log('OneSignal notification opened:', result);
+        });
+
+        OneSignal.promptForPushNotificationsWithUserResponse((accepted: boolean) => {
+          console.log('User accepted push notifications:', accepted);
+        });
+
       } catch (e) {
-        // Not in a native app environment, skip silently
-        console.log('OneSignal not available:', e);
+        console.log('OneSignal init error:', e);
       }
     };
 
-    const onReady = () => {
-      initOneSignal();
-    };
+    // Wait for Capacitor/Cordova deviceready event
+    document.addEventListener('deviceready', init, false);
 
-    if (document.readyState === 'complete') {
-      onReady();
-    } else {
-      document.addEventListener('deviceready', onReady, false);
-      window.addEventListener('load', onReady, { once: true });
-    }
+    return () => {
+      document.removeEventListener('deviceready', init);
+    };
   }, []);
 
   return null;
