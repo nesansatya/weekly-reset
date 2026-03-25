@@ -1,6 +1,6 @@
 'use client'
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 const features = {
   free: [
@@ -36,10 +36,14 @@ const PRICE_IDS = {
 
 const s = (o: React.CSSProperties) => o
 
-export default function UpgradePage() {
+function UpgradeContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const coupon = searchParams.get('coupon')
+  const source = searchParams.get('source')
+  const isStreakReward = source === 'streak' && coupon === 'dTaJGxYd'
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('yearly')
-  const [currency, setCurrency] = useState<'usd' | 'myr'>('usd')
+  const [currency, setCurrency] = useState<'usd' | 'myr'>('myr')
   const [loading, setLoading] = useState(false)
 
   const prices = {
@@ -55,7 +59,7 @@ export default function UpgradePage() {
       const res = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ priceId }),
+        body: JSON.stringify({ priceId, ...(isStreakReward && { couponId: coupon }) }),
       })
       const { url, error } = await res.json()
       if (error) { alert(error); setLoading(false); return }
@@ -80,6 +84,22 @@ export default function UpgradePage() {
           Personalise everything. Let AI guide your weekly reset.
         </p>
       </div>
+
+      {/* Streak reward banner */}
+      {isStreakReward && (
+        <div style={s({ margin: '16px 22px 0', background: '#1a1a18', borderRadius: 14, padding: 16, border: '1px solid #c4a35a' })}>
+          <div style={s({ fontSize: 14, fontWeight: 700, color: '#f0d080', marginBottom: 6 })}>
+            🔥 Your streak reward is applied!
+          </div>
+          <div style={s({ fontSize: 12, color: 'rgba(255,255,255,0.6)', lineHeight: 1.5, marginBottom: 8 })}>
+            50% off for your first 12 months. Full price from Year 2. No surprises at renewal.
+          </div>
+          <div style={s({ display: 'flex', gap: 16 })}>
+            <div style={s({ fontSize: 13, color: '#f0d080', fontWeight: 700 })}>Monthly: RM9.95/mo</div>
+            <div style={s({ fontSize: 13, color: '#f0d080', fontWeight: 700 })}>Yearly: RM79.50/yr</div>
+          </div>
+        </div>
+      )}
 
       {/* Currency toggle */}
       <div style={s({ display: 'flex', gap: 8, padding: '20px 22px 0' })}>
@@ -200,5 +220,17 @@ export default function UpgradePage() {
       </div>
 
     </main>
+  )
+}
+
+export default function UpgradePage() {
+  return (
+    <Suspense fallback={
+      <main style={{ minHeight: '100vh', background: '#faf8f4', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ fontSize: 13, color: '#7a7a72', fontFamily: "'DM Sans', Arial, sans-serif" }}>Loading...</div>
+      </main>
+    }>
+      <UpgradeContent />
+    </Suspense>
   )
 }
