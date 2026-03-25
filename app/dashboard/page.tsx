@@ -345,6 +345,7 @@ export default function Dashboard() {
   const [waterIntake, setWaterIntake] = useState('')
   const [stressLevel, setStressLevel] = useState('')
   const [isPro, setIsPro] = useState(false)
+  const [checkinDone, setCheckinDone] = useState(false)
 
   // #5 — Offline detection
   useEffect(() => {
@@ -393,6 +394,11 @@ export default function Dashboard() {
           setShowWeightPrompt(true)
         }
         if (profile.data?.is_pro) setIsPro(profile.data.is_pro)
+        // Check if morning check-in done today
+        const checkinDate = new Date().toISOString().split('T')[0]
+        const checkinRes = await fetchWithTimeout(`/api/checkin?date=${checkinDate}`)
+        const checkin = await checkinRes.json()
+        if (checkin.data?.wake_feeling) setCheckinDone(true)
         if (profile.data?.fitness_level) setFitnessLevel(profile.data.fitness_level)
         if (profile.data?.sleep_quality) setSleepQuality(profile.data.sleep_quality)
         if (profile.data?.health_challenge) setHealthChallenge(profile.data.health_challenge)
@@ -756,7 +762,7 @@ export default function Dashboard() {
             <span style={s({ fontSize: 10, color: '#7a7a72' })}>Energised</span>
           </div>
         </div>
-        {rec && (
+        {rec && !checkinDone && (
           <div style={s({ marginTop: 10, background: rec.bg, border: `1px solid ${rec.border}`, borderRadius: 14, padding: '14px 16px' })}>
             <div style={s({ display: 'flex', alignItems: 'flex-start', gap: 10 })}>
               <div style={s({ width: 8, height: 8, borderRadius: '50%', background: rec.dot, flexShrink: 0, marginTop: 5 })}/>
