@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 
 // ─── MORNING QUESTIONS ───────────────────────────────────────────────────────
@@ -179,7 +179,7 @@ function getBedtimePlan(answers: Record<string, string>) {
 }
 
 // ─── MAIN COMPONENT ──────────────────────────────────────────────────────────
-export default function CheckinPage() {
+function CheckinContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const type = (searchParams.get('type') || 'morning') as 'morning' | 'midday' | 'bedtime'
@@ -336,5 +336,17 @@ export default function CheckinPage() {
         </div>
       )}
     </main>
+  )
+}
+
+export default function CheckinPage() {
+  return (
+    <Suspense fallback={
+      <main style={{ minHeight: '100dvh', background: '#faf8f4', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ fontSize: 13, color: '#7a7a72', fontFamily: "'DM Sans', Arial, sans-serif" }}>Loading...</div>
+      </main>
+    }>
+      <CheckinContent />
+    </Suspense>
   )
 }
