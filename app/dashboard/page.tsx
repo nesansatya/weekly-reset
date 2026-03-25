@@ -197,6 +197,121 @@ async function fetchWithTimeout(url: string, options?: RequestInit, ms = 8000) {
   }
 }
 
+type DifficultyLevel = 'easy' | 'moderate' | 'hard' | 'push'
+
+function getWorkoutDifficulty(
+  fitnessLevel: string,
+  mood: number,
+  energy: number,
+  streak: number,
+  dayIndex: number
+): {
+  level: DifficultyLevel
+  badge: string
+  color: string
+  bg: string
+  border: string
+  coachMessage: string
+  multiplier: number
+} {
+  // Base level from fitness
+  let base: DifficultyLevel =
+    fitnessLevel === 'Complete beginner' ? 'easy' :
+    fitnessLevel === 'Some experience' ? 'moderate' :
+    fitnessLevel === 'Intermediate' ? 'hard' :
+    fitnessLevel === 'Pretty active' ? 'push' : 'moderate'
+
+  // Day modifier — Wednesday & Thursday are lighter days
+  const isLighterDay = dayIndex === 2 || dayIndex === 3
+  if (isLighterDay && base === 'push') base = 'hard'
+  if (isLighterDay && base === 'hard') base = 'moderate'
+
+  // Mood & energy override — if user is having a rough day, drop one level
+  const moodEnergy = (mood + energy) / 2
+  let level = base
+  if (mood > 0 && energy > 0) {
+    if (moodEnergy <= 2) {
+      // Rough day — drop one level but never skip
+      level = base === 'push' ? 'hard' :
+              base === 'hard' ? 'moderate' :
+              base === 'moderate' ? 'easy' : 'easy'
+    } else if (moodEnergy >= 4.5 && streak >= 7) {
+      // Feeling great + strong streak — push harder
+      level = base === 'easy' ? 'moderate' :
+              base === 'moderate' ? 'hard' :
+              base === 'hard' ? 'push' : 'push'
+    }
+  }
+
+  // Streak booster — 7+ day streak nudges up
+  if (streak >= 14 && level !== 'push') {
+    level = level === 'easy' ? 'moderate' :
+            level === 'moderate' ? 'hard' : 'push'
+  }
+
+  const configs = {
+    easy: {
+      badge: '🌱 Easy',
+      color: '#27500A',
+      bg: '#e8f5e0',
+      border: '#97C459',
+      multiplier: 0.7,
+      coachMessage: mood > 0 && energy > 0 && moodEnergy <= 2
+        ? "Rough day detected — we've lightened today's load. But you're still showing up and that's what counts. 💪"
+        : "We've set a beginner-friendly pace. Consistency beats intensity every single time. Just start! 🌱",
+    },
+    moderate: {
+      badge: '💪 Moderate',
+      color: '#633806',
+      bg: '#fff4e0',
+      border: '#f5d58a',
+      multiplier: 1.0,
+      coachMessage: mood > 0 && energy > 0 && moodEnergy <= 2
+        ? "Not your best day — but moderate effort today keeps the streak alive. Keep going! 🙌"
+        : "Solid day ahead. Stick to the plan, complete your sets, and build on yesterday. 💪",
+    },
+    hard: {
+      badge: '🔥 Hard',
+      color: '#7c2f0c',
+      bg: '#fde8e0',
+      border: '#f0997b',
+      multiplier: 1.25,
+      coachMessage: mood > 0 && energy > 0 && moodEnergy >= 4
+        ? "You're feeling good and your body is ready — push through today's harder sets! 🔥"
+        : `${streak >= 7 ? `${streak}-day streak — your body is adapting. Time to push harder!` : "Your fitness level is ready for a challenge. Go get it!"} 🔥`,
+    },
+    push: {
+      badge: '⚡ Push Mode',
+      color: '#1a1a18',
+      bg: '#1a1a18',
+      border: '#7db84a',
+      multiplier: 1.5,
+      coachMessage: mood > 0 && energy > 0 && moodEnergy >= 4.5 && streak >= 7
+        ? `${streak}-day streak and feeling great — this is your peak. Push harder than yesterday! ⚡`
+        : "You're experienced and your body is built for this. No holding back today! ⚡",
+    },
+  }
+
+  return { level, ...configs[level] }
+}
+
+function adjustSets(sets: string, multiplier: number): string {
+  if (!sets) return sets
+  // Handle "3 × 12" format
+  const match = sets.match(/^(\d+)\s*[×x]\s*(\d+)(.*)$/)
+  if (match) {
+    const reps = Math.round(parseInt(match[2]) * multiplier)
+    return `${match[1]} × ${reps}${match[3]}`
+  }
+  // Handle "3 × 30 sec" format
+  const timeMatch = sets.match(/^(\d+)\s*[×x]\s*(\d+)\s*(sec|min)(.*)$/)
+  if (timeMatch) {
+    const time = Math.round(parseInt(timeMatch[2]) * multiplier)
+    return `${timeMatch[1]} × ${time} ${timeMatch[3]}${timeMatch[4]}`
+  }
+  return sets
+}
+
 function calcWaterGoal(weightKg: number) {
   const litres = weightKg * 0.033
   const glasses = Math.round(litres / 0.25)
@@ -356,8 +471,13 @@ export default function Dashboard() {
 
   const rec = getRecommendation(mood, energy)
   const dayData = days[currentDay]
+  const difficulty = getWorkoutDifficulty(fitnessLevel, mood, energy, streak, currentDay)
+  const adjustedExercises = dayData.exercises.map(ex => ({
+    ...ex,
+    sets: adjustSets(ex.sets, difficulty.multiplier)
+  }))
   const exDone = Object.values(checkedEx).filter(Boolean).length
-  const exTotal = dayData.exercises.length
+  const exTotal = adjustedExercises.length
   const pct = exTotal > 0 ? Math.round(exDone / exTotal * 100) : 0
   const waterGoal = weightKg ? calcWaterGoal(weightKg) : { litres: 2.5, glasses: 10 }
   const lbsDisplay = weightKg ? Math.round(weightKg * 2.205) : null
@@ -517,30 +637,7 @@ export default function Dashboard() {
         const visibleBanners = isPro ? banners : banners.slice(0, 1)
         return <>{visibleBanners}</>
       })()}
-      {!isPro && fitnessLevel && (
-        <div style={s({ margin: '12px 22px 0', background: '#e0eeff', border: '1px solid #85B7EB', borderRadius: 14, padding: '12px 16px' })}>
-          <div style={s({ fontSize: 13, fontWeight: 700, color: '#0C447C', marginBottom: 2 })}>😴 Sleep is your #1 priority</div>
-          <div style={s({ fontSize: 12, color: '#185FA5', lineHeight: 1.5 })}>Based on your profile, improving sleep will have the biggest impact on your energy and mood.</div>
-        </div>
-      )}
-      {(stressLevel === 'Very high' || stressLevel === 'High') && (
-        <div style={s({ margin: '12px 22px 0', background: '#f0e8ff', border: '1px solid #b085eb', borderRadius: 14, padding: '12px 16px' })}>
-          <div style={s({ fontSize: 13, fontWeight: 700, color: '#4a0c7c', marginBottom: 2 })}>🧘 High stress detected</div>
-          <div style={s({ fontSize: 12, color: '#6a1fa5', lineHeight: 1.5 })}>Take it easy today. Recovery and light movement will serve you better than intense workouts right now.</div>
-        </div>
-      )}
-      {workSchedule === 'Desk job — mostly sitting' && (
-        <div style={s({ margin: '12px 22px 0', background: '#fff4e0', border: '1px solid #f5d58a', borderRadius: 14, padding: '12px 16px' })}>
-          <div style={s({ fontSize: 13, fontWeight: 700, color: '#633806', marginBottom: 2 })}>💼 Desk job reminder</div>
-          <div style={s({ fontSize: 12, color: '#BA7517', lineHeight: 1.5 })}>You sit most of the day — make your steps goal and morning sunlight non-negotiable today.</div>
-        </div>
-      )}
-      {(waterIntake === 'Less than 1L' || waterIntake === '1–1.5L') && (
-        <div style={s({ margin: '12px 22px 0', background: '#e0f4ff', border: '1px solid #85d4eb', borderRadius: 14, padding: '12px 16px' })}>
-          <div style={s({ fontSize: 13, fontWeight: 700, color: '#0c4a5c', marginBottom: 2 })}>💧 You need more water</div>
-          <div style={s({ fontSize: 12, color: '#185a7c', lineHeight: 1.5 })}>Your profile shows low daily water intake. Hit your water goal today — it will improve your energy within hours.</div>
-        </div>
-      )}
+      
       {!isPro && (
         <div style={s({ margin: '12px 22px 0', background: 'linear-gradient(135deg, #e8f5e0, #f0f7e8)', border: '1px solid #97C459', borderRadius: 14, padding: '12px 16px' })}>
           <div style={s({ fontSize: 13, fontWeight: 700, color: '#27500A', marginBottom: 2 })}>✦ Unlock all personalised insights</div>
@@ -567,13 +664,38 @@ export default function Dashboard() {
       {/* Exercises */}
       <div style={s({ margin: '16px 22px 0' })}>
         <div style={s({ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 })}>
-          <div style={s({ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: '#7a7a72', textTransform: 'uppercase' })}>Today's workout</div>
+          <div style={s({ display: 'flex', alignItems: 'center', gap: 8 })}>
+            <div style={s({ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: '#7a7a72', textTransform: 'uppercase' })}>Today's workout</div>
+            {fitnessLevel && (
+              <div style={s({
+                fontSize: 11, fontWeight: 700,
+                color: difficulty.level === 'push' ? '#a8c48a' : difficulty.color,
+                background: difficulty.level === 'push' ? '#1a1a18' : difficulty.bg,
+                border: `1px solid ${difficulty.border}`,
+                borderRadius: 20, padding: '3px 10px',
+              })}>
+                {difficulty.badge}
+              </div>
+            )}
+          </div>
           <button onClick={() => router.push('/dashboard/workout')} style={s({ fontSize: 11, fontWeight: 600, color: '#4a7c2f', background: '#e8f5e0', border: 'none', borderRadius: 20, padding: '4px 10px', cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif" })}>
             ✦ Customise
           </button>
         </div>
+        {fitnessLevel && (
+          <div style={s({
+            marginBottom: 10, padding: '10px 14px',
+            background: difficulty.level === 'push' ? '#1a1a18' : difficulty.bg,
+            border: `1px solid ${difficulty.border}`,
+            borderRadius: 10, fontSize: 12,
+            color: difficulty.level === 'push' ? 'rgba(255,255,255,0.7)' : difficulty.color,
+            lineHeight: 1.5,
+          })}>
+            {difficulty.coachMessage}
+          </div>
+        )}
         <div style={s({ background: 'white', borderRadius: 14, border: '1px solid #e4e0d8', overflow: 'hidden' })}>
-          {dayData.exercises.map((ex, i) => (
+          {adjustedExercises.map((ex, i) => (
             <div key={i} onClick={() => {
               const updated = { ...checkedEx, [i]: !checkedEx[i] }
               setCheckedEx(updated)
