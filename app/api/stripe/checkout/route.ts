@@ -25,7 +25,7 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await request.json()
-  const { priceId } = body
+  const { priceId, couponId } = body
 
   const { data: profile } = await supabase
     .from('users')
@@ -53,6 +53,7 @@ export async function POST(request: Request) {
     success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?upgraded=true`,
     cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/upgrade`,
     metadata: { supabase_user_id: user.id },
+    ...(couponId && { discounts: [{ coupon: couponId }] }),
   })
 
   return NextResponse.json({ url: session.url })

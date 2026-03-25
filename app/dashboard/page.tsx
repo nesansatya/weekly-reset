@@ -346,6 +346,7 @@ export default function Dashboard() {
   const [stressLevel, setStressLevel] = useState('')
   const [isPro, setIsPro] = useState(false)
   const [checkinDone, setCheckinDone] = useState(false)
+  const [showStreakReward, setShowStreakReward] = useState(false)
 
   // #5 — Offline detection
   useEffect(() => {
@@ -403,7 +404,13 @@ export default function Dashboard() {
         if (exercise.data?.completed_exercises) setCheckedEx(exercise.data.completed_exercises)
         if (habit.data?.checked_habits) setCheckedHabits(habit.data.checked_habits)
         // #6 — streak only set once here, not again in saveData
-        if (streakData.data) setStreak(streakData.data.current_streak || 0)
+        if (streakData.data) {
+          const currentStreak = streakData.data.current_streak || 0
+          setStreak(currentStreak)
+          // Show streak reward if 7+ days and not dismissed before
+          const dismissed = localStorage.getItem('wr_streak_reward_dismissed')
+          if (currentStreak >= 7 && !dismissed) setShowStreakReward(true)
+        }
         if (profile.data?.weight_kg) {
           setWeightKg(profile.data.weight_kg)
           setShowWeightPrompt(false)
@@ -621,6 +628,98 @@ export default function Dashboard() {
 
       {/* Ramadan Banner */}
       <RamadanBanner />
+
+      {/* 7-Day Streak Reward */}
+      {showStreakReward && !isPro && (
+        <div style={s({
+          margin: '16px 22px 0',
+          background: '#1a1a18',
+          borderRadius: 16,
+          padding: 20,
+          border: '1px solid #c4a35a',
+          position: 'relative',
+          overflow: 'hidden',
+        })}>
+          {/* Background glow */}
+          <div style={s({ position: 'absolute', width: 150, height: 150, borderRadius: '50%', background: '#c4a35a', opacity: 0.06, top: -40, right: -40 })} />
+          <div style={s({ position: 'relative', zIndex: 1 })}>
+            {/* Header */}
+            <div style={s({ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 })}>
+              <div style={s({ display: 'flex', alignItems: 'center', gap: 8 })}>
+                <div style={s({ fontSize: 28 })}>🔥</div>
+                <div>
+                  <div style={s({ fontSize: 14, fontWeight: 700, color: '#f0d080' })}>
+                    {streak}-Day Streak Reward!
+                  </div>
+                  <div style={s({ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 2 })}>
+                    You earned this
+                  </div>
+                </div>
+              </div>
+              <button onClick={() => {
+                setShowStreakReward(false)
+                localStorage.setItem('wr_streak_reward_dismissed', 'true')
+              }} style={s({ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: 18, cursor: 'pointer', padding: 0 })}>
+                ×
+              </button>
+            </div>
+
+            {/* Message */}
+            <div style={s({ fontSize: 13, color: 'rgba(255,255,255,0.7)', lineHeight: 1.6, marginBottom: 16 })}>
+              You've shown up <span style={{ color: '#f0d080', fontWeight: 700 }}>{streak} days straight</span>. That's rare — and it deserves a reward. Unlock Pro at <span style={{ color: '#f0d080', fontWeight: 700 }}>50% off for your first year</span>, then full price after.
+            </div>
+
+            {/* Pricing */}
+            <div style={s({ background: 'rgba(196,163,90,0.1)', border: '1px solid rgba(196,163,90,0.2)', borderRadius: 10, padding: '10px 14px', marginBottom: 16 })}>
+              <div style={s({ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 })}>
+                <div style={s({ fontSize: 12, color: 'rgba(255,255,255,0.5)' })}>Monthly</div>
+                <div style={s({ display: 'flex', alignItems: 'center', gap: 8 })}>
+                  <div style={s({ fontSize: 12, color: 'rgba(255,255,255,0.3)', textDecoration: 'line-through' })}>RM19.90/mo</div>
+                  <div style={s({ fontSize: 13, fontWeight: 700, color: '#f0d080' })}>RM9.95/mo</div>
+                </div>
+              </div>
+              <div style={s({ display: 'flex', justifyContent: 'space-between', alignItems: 'center' })}>
+                <div style={s({ fontSize: 12, color: 'rgba(255,255,255,0.5)' })}>Yearly</div>
+                <div style={s({ display: 'flex', alignItems: 'center', gap: 8 })}>
+                  <div style={s({ fontSize: 12, color: 'rgba(255,255,255,0.3)', textDecoration: 'line-through' })}>RM159/yr</div>
+                  <div style={s({ fontSize: 13, fontWeight: 700, color: '#f0d080' })}>RM79.50/yr</div>
+                </div>
+              </div>
+              <div style={s({ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginTop: 8 })}>
+                50% off for 12 months, then full price from Year 2. No surprises.
+              </div>
+            </div>
+
+            {/* CTA Buttons */}
+            <div style={s({ display: 'flex', gap: 8 })}>
+              <button onClick={() => {
+                router.push('/upgrade?coupon=dTaJGxYd&source=streak')
+              }} style={s({
+                flex: 1, padding: '12px 16px',
+                background: '#c4a35a', color: '#1a1a18',
+                border: 'none', borderRadius: 10,
+                fontSize: 13, fontWeight: 700,
+                cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif",
+              })}>
+                Claim my 50% off →
+              </button>
+              <button onClick={() => {
+                setShowStreakReward(false)
+                localStorage.setItem('wr_streak_reward_dismissed', 'true')
+              }} style={s({
+                padding: '12px 16px',
+                background: 'rgba(255,255,255,0.06)',
+                color: 'rgba(255,255,255,0.4)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: 10, fontSize: 12,
+                cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif",
+              })}>
+                Maybe later
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Personalised Insight Banner */}
       {(() => {
