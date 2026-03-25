@@ -530,9 +530,14 @@ export default function Dashboard() {
             {saving && <div style={s({ fontSize: 11, color: '#7a7a72' })}>Saving...</div>}
           </div>
         </div>
-        <button onClick={() => router.push('/dashboard/profile')} style={s({ width: 42, height: 42, borderRadius: '50%', background: '#1a1a18', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, marginTop: 8, flexShrink: 0 })}>
-          🌿
-        </button>
+        <div style={s({ display: 'flex', gap: 8, alignItems: 'center', marginTop: 8 })}>
+          <button onClick={() => router.push('/checkin')} style={s({ display: 'flex', alignItems: 'center', gap: 6, background: '#fff4e0', border: '1px solid #f5d58a', borderRadius: 20, padding: '6px 12px', cursor: 'pointer', fontSize: 11, fontWeight: 700, color: '#8a6200', fontFamily: "'DM Sans', Arial, sans-serif" })}>
+            🌅 Check in
+          </button>
+          <button onClick={() => router.push('/dashboard/profile')} style={s({ width: 42, height: 42, borderRadius: '50%', background: '#1a1a18', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 })}>
+            🌿
+          </button>
+        </div>
       </div>
 
       {/* Hero card */}
