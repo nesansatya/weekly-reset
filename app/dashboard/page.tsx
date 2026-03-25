@@ -731,48 +731,90 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Mood */}
+      {/* Smart Check-in Card */}
       <div style={s({ margin: '16px 22px 0' })}>
-        <div style={s({ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: '#7a7a72', textTransform: 'uppercase', marginBottom: 10 })}>How are you feeling?</div>
-        <div style={s({ background: 'white', borderRadius: 14, border: '1px solid #e4e0d8', padding: 16 })}>
-          <div style={s({ fontSize: 12, fontWeight: 600, color: '#3d3d3a', marginBottom: 10 })}>Mood</div>
-          <div style={s({ display: 'flex', justifyContent: 'space-between', marginBottom: 16 })}>
-            {moods.map((m, i) => (
-              <button key={i} onClick={() => { setMood(i + 1); saveData({ mood: i + 1 }) }} style={s({
-                flex: 1, padding: '8px 4px', borderRadius: 10, cursor: 'pointer',
-                border: `1px solid ${mood === i + 1 ? '#7db84a' : '#e4e0d8'}`,
-                background: mood === i + 1 ? '#e8f5e0' : 'white', textAlign: 'center',
-              })}>
-                <div style={{ fontSize: 22 }}>{m.e}</div>
-                <div style={s({ fontSize: 9, color: mood === i + 1 ? '#4a7c2f' : '#7a7a72', marginTop: 3, fontWeight: 500 })}>{m.l}</div>
-              </button>
-            ))}
-          </div>
-          <div style={s({ fontSize: 12, fontWeight: 600, color: '#3d3d3a', marginBottom: 8 })}>Energy level</div>
-          <div style={s({ display: 'flex', gap: 6 })}>
-            {[1,2,3,4,5].map(i => (
-              <div key={i} onClick={() => { setEnergy(i); saveData({ energy: i }) }} style={s({
-                flex: 1, height: 6, borderRadius: 4, cursor: 'pointer',
-                background: energy >= i ? '#4a7c2f' : '#f0ece4',
-              })}/>
-            ))}
-          </div>
-          <div style={s({ display: 'flex', justifyContent: 'space-between', marginTop: 4 })}>
-            <span style={s({ fontSize: 10, color: '#7a7a72' })}>Drained</span>
-            <span style={s({ fontSize: 10, color: '#7a7a72' })}>Energised</span>
-          </div>
-        </div>
-        {rec && !checkinDone && (
-          <div style={s({ marginTop: 10, background: rec.bg, border: `1px solid ${rec.border}`, borderRadius: 14, padding: '14px 16px' })}>
-            <div style={s({ display: 'flex', alignItems: 'flex-start', gap: 10 })}>
-              <div style={s({ width: 8, height: 8, borderRadius: '50%', background: rec.dot, flexShrink: 0, marginTop: 5 })}/>
-              <div>
-                <div style={s({ fontSize: 13, fontWeight: 700, color: rec.text, marginBottom: 4 })}>{rec.message}</div>
-                <div style={s({ fontSize: 13, color: rec.text, lineHeight: 1.6, opacity: 0.85 })}>{rec.action}</div>
+        <div style={s({ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: '#7a7a72', textTransform: 'uppercase', marginBottom: 10 })}>Daily Check-ins</div>
+
+        {(() => {
+          const hour = new Date().getHours()
+          const isMorning = hour >= 5 && hour < 12
+          const isMidday = hour >= 12 && hour < 15
+          const isBedtime = hour >= 20 && hour < 24
+
+          return (
+            <div style={s({ display: 'flex', flexDirection: 'column', gap: 10 })}>
+
+              {/* Morning check-in */}
+              <div style={s({ background: checkinDone ? '#e8f5e0' : isMorning ? '#fff4e0' : 'white', border: `1px solid ${checkinDone ? '#97C459' : isMorning ? '#f5d58a' : '#e4e0d8'}`, borderRadius: 14, padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' })}>
+                <div>
+                  <div style={s({ fontSize: 13, fontWeight: 700, color: checkinDone ? '#27500A' : '#1a1a18', marginBottom: 2 })}>🌅 Morning Check-in</div>
+                  <div style={s({ fontSize: 11, color: checkinDone ? '#4a7c2f' : '#7a7a72' })}>
+                    {checkinDone ? '✅ Done — plan set for today' : isMorning ? 'Available now — set your day' : 'Available 5AM–12PM'}
+                  </div>
+                </div>
+                {!checkinDone && (
+                  <button onClick={() => router.push('/checkin?type=morning')} style={s({ padding: '8px 14px', background: isMorning ? '#4a7c2f' : '#f5f2ec', color: isMorning ? 'white' : '#7a7a72', border: 'none', borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif", flexShrink: 0 })}>
+                    {isMorning ? 'Start →' : 'Missed'}
+                  </button>
+                )}
               </div>
+
+              {/* Midday check-in — Pro only */}
+              {isPro ? (
+                <div style={s({ background: 'white', border: `1px solid ${isMidday ? '#f5d58a' : '#e4e0d8'}`, borderRadius: 14, padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' })}>
+                  <div>
+                    <div style={s({ fontSize: 13, fontWeight: 700, color: '#1a1a18', marginBottom: 2 })}>☀️ Mid-day Check-in</div>
+                    <div style={s({ fontSize: 11, color: '#7a7a72' })}>
+                      {isMidday ? 'Available now — how\'s your day?' : 'Available 12PM–3PM'}
+                    </div>
+                  </div>
+                  {isMidday && (
+                    <button onClick={() => router.push('/checkin?type=midday')} style={s({ padding: '8px 14px', background: '#4a7c2f', color: 'white', border: 'none', borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif", flexShrink: 0 })}>
+                      Start →
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div style={s({ background: '#faf8f4', border: '1px solid #e4e0d8', borderRadius: 14, padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', opacity: 0.7 })}>
+                  <div>
+                    <div style={s({ fontSize: 13, fontWeight: 700, color: '#1a1a18', marginBottom: 2 })}>☀️ Mid-day Check-in</div>
+                    <div style={s({ fontSize: 11, color: '#7a7a72' })}>✦ Pro feature</div>
+                  </div>
+                  <button onClick={() => router.push('/upgrade')} style={s({ padding: '8px 14px', background: '#e8f5e0', color: '#4a7c2f', border: 'none', borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif", flexShrink: 0 })}>
+                    Unlock →
+                  </button>
+                </div>
+              )}
+
+              {/* Bedtime check-in — Pro only */}
+              {isPro ? (
+                <div style={s({ background: 'white', border: `1px solid ${isBedtime ? '#b085eb' : '#e4e0d8'}`, borderRadius: 14, padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' })}>
+                  <div>
+                    <div style={s({ fontSize: 13, fontWeight: 700, color: '#1a1a18', marginBottom: 2 })}>🌙 Bedtime Check-in</div>
+                    <div style={s({ fontSize: 11, color: '#7a7a72' })}>
+                      {isBedtime ? 'Available now — reflect on today' : 'Available 8PM–12AM'}
+                    </div>
+                  </div>
+                  {isBedtime && (
+                    <button onClick={() => router.push('/checkin?type=bedtime')} style={s({ padding: '8px 14px', background: '#4a7c2f', color: 'white', border: 'none', borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif", flexShrink: 0 })}>
+                      Start →
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div style={s({ background: '#faf8f4', border: '1px solid #e4e0d8', borderRadius: 14, padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', opacity: 0.7 })}>
+                  <div>
+                    <div style={s({ fontSize: 13, fontWeight: 700, color: '#1a1a18', marginBottom: 2 })}>🌙 Bedtime Check-in</div>
+                    <div style={s({ fontSize: 11, color: '#7a7a72' })}>✦ Pro feature</div>
+                  </div>
+                  <button onClick={() => router.push('/upgrade')} style={s({ padding: '8px 14px', background: '#e8f5e0', color: '#4a7c2f', border: 'none', borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif", flexShrink: 0 })}>
+                    Unlock →
+                  </button>
+                </div>
+              )}
             </div>
-          </div>
-        )}
+          )
+        })()}
       </div>
 
       {/* Water */}

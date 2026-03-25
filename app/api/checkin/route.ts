@@ -65,22 +65,49 @@ export async function POST(request: Request) {
 
   const body = await request.json()
   const today = new Date().toISOString().split('T')[0]
+  const type = body.type || 'morning'
 
   const allowed_wake = ['Great', 'Okay', 'Tired', 'Sick']
   const allowed_day = ['Normal', 'Busy', 'WFH', 'Off day', 'Travelling']
   const allowed_workout = ['Full workout', 'Light only', 'Skip today']
   const allowed_modifier = ['All good', 'Feeling sick', 'Injured', 'Stressed out']
+  const allowed_midday = ['Great', 'Okay', 'Rough']
+  const allowed_workout_done = ['Yes', 'Partially', 'Not yet']
+  const allowed_bedtime = ['Great', 'Good', 'Okay', 'Tough']
+  const allowed_sleep_time = ['Before 10PM', '10PM–11PM', '11PM–12AM', 'After midnight']
+  const allowed_tomorrow = ['Full workout', 'Light only', 'Rest day']
 
-  const { data, error } = await supabase
-    .from('daily_checkins')
-    .upsert({
-      user_id: user.id,
-      checkin_date: today,
+  let updateData: Record<string, any> = {
+    user_id: user.id,
+    checkin_date: today,
+  }
+
+  if (type === 'morning') {
+    updateData = {
+      ...updateData,
       wake_feeling: allowed_wake.includes(body.wake_feeling) ? body.wake_feeling : null,
       day_type: allowed_day.includes(body.day_type) ? body.day_type : null,
       workout_intent: allowed_workout.includes(body.workout_intent) ? body.workout_intent : null,
       health_modifier: allowed_modifier.includes(body.health_modifier) ? body.health_modifier : null,
-    }, { onConflict: 'user_id,checkin_date' })
+    }
+  } else if (type === 'midday') {
+    updateData = {
+      ...updateData,
+      midday_feeling: allowed_midday.includes(body.midday_feeling) ? body.midday_feeling : null,
+      midday_workout_done: allowed_workout_done.includes(body.midday_workout_done) ? body.midday_workout_done : null,
+    }
+  } else if (type === 'bedtime') {
+    updateData = {
+      ...updateData,
+      bedtime_feeling: allowed_bedtime.includes(body.bedtime_feeling) ? body.bedtime_feeling : null,
+      bedtime_sleep_time: allowed_sleep_time.includes(body.bedtime_sleep_time) ? body.bedtime_sleep_time : null,
+      bedtime_tomorrow_intent: allowed_tomorrow.includes(body.bedtime_tomorrow_intent) ? body.bedtime_tomorrow_intent : null,
+    }
+  }
+
+  const { data, error } = await supabase
+    .from('daily_checkins')
+    .upsert(updateData, { onConflict: 'user_id,checkin_date' })
     .select()
     .single()
 
