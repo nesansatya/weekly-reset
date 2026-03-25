@@ -368,6 +368,23 @@ export default function Dashboard() {
       setUserName(name.split(' ')[0])
       const today = new Date().toISOString().split('T')[0]
       try {
+        // Load cached profile instantly for fast first render
+        try {
+          const cached = localStorage.getItem('wr_profile')
+          if (cached) {
+            const p = JSON.parse(cached)
+            if (p.weight_kg) { setWeightKg(p.weight_kg); setShowWeightPrompt(false) }
+            if (p.is_pro) setIsPro(p.is_pro)
+            if (p.fitness_level) setFitnessLevel(p.fitness_level)
+            if (p.sleep_quality) setSleepQuality(p.sleep_quality)
+            if (p.health_challenge) setHealthChallenge(p.health_challenge)
+            if (p.work_schedule) setWorkSchedule(p.work_schedule)
+            if (p.water_intake) setWaterIntake(p.water_intake)
+            if (p.stress_level) setStressLevel(p.stress_level)
+            if (p.full_name) setUserName(p.full_name.split(' ')[0])
+          }
+        } catch (_e) {}
+
         const [dailyRes, exerciseRes, habitRes, streakRes, profileRes] = await Promise.all([
           fetchWithTimeout(`/api/logs/daily?date=${today}`),
           fetchWithTimeout(`/api/logs/exercise?date=${today}`),
@@ -394,6 +411,10 @@ export default function Dashboard() {
           setShowWeightPrompt(true)
         }
         if (profile.data?.is_pro) setIsPro(profile.data.is_pro)
+        // Cache profile for faster next load
+        if (profile.data) {
+          try { localStorage.setItem('wr_profile', JSON.stringify(profile.data)) } catch (_e) {}
+        }
         // Check if morning check-in done today
         const checkinDate = new Date().toISOString().split('T')[0]
         const checkinRes = await fetchWithTimeout(`/api/checkin?date=${checkinDate}`)
