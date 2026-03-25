@@ -510,8 +510,38 @@ export default function Dashboard() {
   const lbsDisplay = weightKg ? Math.round(weightKg * 2.205) : null
 
   const s = (obj: React.CSSProperties) => obj
-
   const BOTTOM_NAV_HEIGHT = 70
+
+  if (!profileLoaded) return (
+    <main style={s({ minHeight: '100dvh', background: '#faf8f4', fontFamily: "'DM Sans', Arial, sans-serif" })}>
+      {/* Skeleton header */}
+      <div style={s({ padding: '16px 22px 20px', paddingTop: 'calc(env(safe-area-inset-top) + 16px)', background: '#d4cfc4' })}>
+        <div style={s({ width: 80, height: 12, background: '#c4bfb4', borderRadius: 6, marginBottom: 10 })} />
+        <div style={s({ width: 140, height: 28, background: '#c4bfb4', borderRadius: 8, marginBottom: 16 })} />
+        <div style={s({ width: 100, height: 24, background: '#c4bfb4', borderRadius: 20 })} />
+      </div>
+      {/* Skeleton hero card */}
+      <div style={s({ margin: '16px 22px 0', background: '#1a1a18', borderRadius: 20, padding: 20 })}>
+        <div style={s({ width: 120, height: 10, background: 'rgba(255,255,255,0.1)', borderRadius: 5, marginBottom: 12 })} />
+        <div style={s({ width: 180, height: 24, background: 'rgba(255,255,255,0.1)', borderRadius: 8, marginBottom: 12 })} />
+        <div style={s({ width: 100, height: 20, background: 'rgba(255,255,255,0.1)', borderRadius: 6, marginBottom: 20 })} />
+        <div style={s({ height: 5, background: 'rgba(255,255,255,0.1)', borderRadius: 10 })} />
+      </div>
+      {/* Skeleton workout */}
+      <div style={s({ margin: '16px 22px 0' })}>
+        <div style={s({ width: 120, height: 10, background: '#e4e0d8', borderRadius: 5, marginBottom: 12 })} />
+        <div style={s({ background: 'white', borderRadius: 14, border: '1px solid #e4e0d8', overflow: 'hidden' })}>
+          {[1,2,3,4].map(i => (
+            <div key={i} style={s({ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 16px', borderBottom: i < 4 ? '1px solid #f5f2ec' : 'none' })}>
+              <div style={s({ width: 20, height: 20, borderRadius: '50%', background: '#f0ece4', flexShrink: 0 })} />
+              <div style={s({ flex: 1, height: 10, background: '#f0ece4', borderRadius: 5 })} />
+              <div style={s({ width: 50, height: 20, background: '#f0ece4', borderRadius: 5 })} />
+            </div>
+          ))}
+        </div>
+      </div>
+    </main>
+  )
 
   return (
   <AuthGuard>
