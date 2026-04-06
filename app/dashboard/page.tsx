@@ -513,29 +513,70 @@ export default function Dashboard() {
 
   if (!profileLoaded) return (
     <main style={s({ minHeight: '100dvh', background: '#faf8f4', fontFamily: "'DM Sans', Arial, sans-serif" })}>
+
+      {/* Header shimmer */}
       <div style={s({ padding: '16px 22px 20px', paddingTop: 'calc(env(safe-area-inset-top) + 16px)', background: '#d4cfc4' })}>
-        <div style={s({ width: 80, height: 12, background: '#c4bfb4', borderRadius: 6, marginBottom: 10 })} />
-        <div style={s({ width: 140, height: 28, background: '#c4bfb4', borderRadius: 8, marginBottom: 16 })} />
-        <div style={s({ width: 100, height: 24, background: '#c4bfb4', borderRadius: 20 })} />
+        <div className="shimmer" style={s({ width: 80, height: 12, marginBottom: 10 })} />
+        <div className="shimmer" style={s({ width: 150, height: 28, borderRadius: 8, marginBottom: 12 })} />
+        <div className="shimmer" style={s({ width: 110, height: 22, borderRadius: 20 })} />
       </div>
+
+      {/* Hero card shimmer */}
       <div style={s({ margin: '16px 22px 0', background: '#1a1a18', borderRadius: 20, padding: 20 })}>
-        <div style={s({ width: 120, height: 10, background: 'rgba(255,255,255,0.1)', borderRadius: 5, marginBottom: 12 })} />
-        <div style={s({ width: 180, height: 24, background: 'rgba(255,255,255,0.1)', borderRadius: 8, marginBottom: 12 })} />
-        <div style={s({ width: 100, height: 20, background: 'rgba(255,255,255,0.1)', borderRadius: 6, marginBottom: 20 })} />
-        <div style={s({ height: 5, background: 'rgba(255,255,255,0.1)', borderRadius: 10 })} />
+        <div className="shimmer-dark" style={s({ width: 120, height: 10, marginBottom: 12 })} />
+        <div className="shimmer-dark" style={s({ width: 180, height: 24, borderRadius: 8, marginBottom: 10 })} />
+        <div className="shimmer-dark" style={s({ width: 100, height: 18, borderRadius: 6, marginBottom: 18 })} />
+        <div className="shimmer-dark" style={s({ height: 5, borderRadius: 10 })} />
       </div>
+
+      {/* Workout shimmer */}
       <div style={s({ margin: '16px 22px 0' })}>
-        <div style={s({ width: 120, height: 10, background: '#e4e0d8', borderRadius: 5, marginBottom: 12 })} />
+        <div className="shimmer" style={s({ width: 120, height: 10, marginBottom: 12 })} />
         <div style={s({ background: 'white', borderRadius: 14, border: '1px solid #e4e0d8', overflow: 'hidden' })}>
           {[1,2,3,4].map(i => (
             <div key={i} style={s({ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 16px', borderBottom: i < 4 ? '1px solid #f5f2ec' : 'none' })}>
-              <div style={s({ width: 20, height: 20, borderRadius: '50%', background: '#f0ece4', flexShrink: 0 })} />
-              <div style={s({ flex: 1, height: 10, background: '#f0ece4', borderRadius: 5 })} />
-              <div style={s({ width: 50, height: 20, background: '#f0ece4', borderRadius: 5 })} />
+              <div className="shimmer" style={s({ width: 20, height: 20, borderRadius: '50%', flexShrink: 0 })} />
+              <div className="shimmer" style={s({ flex: 1, height: 10 })} />
+              <div className="shimmer" style={s({ width: 50, height: 20, borderRadius: 5 })} />
             </div>
           ))}
         </div>
       </div>
+
+      {/* Water shimmer */}
+      <div style={s({ margin: '16px 22px 0' })}>
+        <div className="shimmer" style={s({ width: 90, height: 10, marginBottom: 12 })} />
+        <div style={s({ background: 'white', borderRadius: 14, border: '1px solid #e4e0d8', padding: 16 })}>
+          <div style={s({ display: 'flex', justifyContent: 'space-between', marginBottom: 14 })}>
+            <div className="shimmer" style={s({ width: 80, height: 10 })} />
+            <div className="shimmer" style={s({ width: 48, height: 22, borderRadius: 20 })} />
+          </div>
+          {/* Bottle shimmer */}
+          <div style={s({ display: 'flex', justifyContent: 'center', margin: '0 0 14px' })}>
+            <div className="shimmer" style={s({ width: 72, height: 110, borderRadius: 14 })} />
+          </div>
+          <div style={s({ display: 'flex', gap: 7, flexWrap: 'wrap' })}>
+            {Array.from({ length: 9 }, (_, i) => (
+              <div key={i} className="shimmer" style={s({ width: 34, height: 34, borderRadius: 8 })} />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Habits shimmer */}
+      <div style={s({ margin: '16px 22px 0', paddingBottom: 24 })}>
+        <div className="shimmer" style={s({ width: 100, height: 10, marginBottom: 12 })} />
+        <div style={s({ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 })}>
+          {[1,2,3,4].map(i => (
+            <div key={i} style={s({ background: 'white', borderRadius: 14, border: '1px solid #e4e0d8', padding: 14, height: 90 })}>
+              <div className="shimmer" style={s({ width: 28, height: 28, borderRadius: 6, marginBottom: 10 })} />
+              <div className="shimmer" style={s({ width: '80%', height: 10, marginBottom: 6 })} />
+              <div className="shimmer" style={s({ width: '60%', height: 8 })} />
+            </div>
+          ))}
+        </div>
+      </div>
+
     </main>
   )
 
