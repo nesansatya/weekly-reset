@@ -1045,25 +1045,30 @@ export default function Dashboard() {
                 Goal: {waterGoal.litres}L
                 {weightKg && <span style={s({ fontSize: 11, color: '#7a7a72', fontWeight: 400 })}> · {weightKg}kg{lbsDisplay ? ` / ${lbsDisplay}lbs` : ''}</span>}
               </div>
-              <div style={s({ fontSize: 11, color: '#7a7a72', marginTop: 2 })}>Each 💧 = 250ml · {waterGoal.glasses} glasses to reach your goal</div>
+              <div style={s({ fontSize: 11, color: '#7a7a72', marginTop: 2 })}>Each glass = 250ml · {waterGoal.glasses} glasses to reach your goal</div>
             </div>
             <div style={s({ display: 'flex', alignItems: 'center', gap: 6 })}>
               <div style={s({ background: water >= waterGoal.glasses ? '#1a1a18' : '#e8f5e0', color: water >= waterGoal.glasses ? '#a8c48a' : '#4a7c2f', borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 600, transition: 'all 0.3s ease' })}>{water} / {waterGoal.glasses}</div>
               {weightKg && (
-                <button onClick={() => setShowWeightPrompt(!showWeightPrompt)} style={s({ background: 'none', border: 'none', fontSize: 16, cursor: 'pointer' })}>⚙️</button>
+                <button onClick={() => setShowWeightPrompt(!showWeightPrompt)} style={s({ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 2 })}>
+                  <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
+                    <circle cx="9" cy="9" r="2.5" stroke="#9a9a92" strokeWidth="1.5"/>
+                    <path d="M9 1.5V3M9 15V16.5M1.5 9H3M15 9H16.5M3.22 3.22L4.28 4.28M13.72 13.72L14.78 14.78M14.78 3.22L13.72 4.28M4.28 13.72L3.22 14.78" stroke="#9a9a92" strokeWidth="1.4" strokeLinecap="round"/>
+                  </svg>
+                </button>
               )}
             </div>
           </div>
 
           {/* Water bottle visual */}
-          <div style={s({ display: 'flex', justifyContent: 'center', margin: '14px 0' })}>
+          <div style={s({ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 16, margin: '14px 0' })}>
             <div style={s({ position: 'relative', width: 72 })}>
               <div style={s({ width: 32, height: 14, background: '#e4f0ff', borderRadius: '4px 4px 0 0', border: '1.5px solid #bdd6f5', borderBottom: 'none', margin: '0 auto' })}/>
               <div style={s({ width: 72, height: 96, borderRadius: '8px 8px 14px 14px', border: '1.5px solid #bdd6f5', background: '#f0f8ff', overflow: 'hidden', position: 'relative' })}>
                 <div style={s({
                   position: 'absolute', bottom: 0, left: 0, right: 0,
                   background: water >= waterGoal.glasses ? '#4a9de8' : '#60a5e8',
-                  height: `${Math.max(18, Math.round((water / waterGoal.glasses) * 100))}%`,
+                  height: `${Math.max(4, Math.round((water / waterGoal.glasses) * 100))}%`,
                   transition: 'height 0.5s cubic-bezier(0.34,1.2,0.64,1)',
                   borderRadius: '0 0 12px 12px',
                 })}>
@@ -1073,19 +1078,20 @@ export default function Dashboard() {
                     animation: 'waterWave 2s ease-in-out infinite',
                   })}/>
                 </div>
-                {/* ── FIX: percentage label positioned above fill when low ── */}
-                <div style={s({
-                  position: 'absolute',
-                  bottom: `${Math.max(18, Math.round((water / waterGoal.glasses) * 100)) + 4}%`,
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  fontSize: 13, fontWeight: 700, zIndex: 2,
-                  color: (water / waterGoal.glasses) >= 0.55 ? 'white' : '#0c447c',
-                  transition: 'all 0.3s ease',
-                  whiteSpace: 'nowrap',
-                })}>
-                  {Math.round((water / waterGoal.glasses) * 100)}%
-                </div>
+              </div>
+            </div>
+            {/* Percentage — clean, outside the bottle */}
+            <div style={s({ display: 'flex', flexDirection: 'column', gap: 2 })}>
+              <div style={s({
+                fontSize: 28, fontWeight: 700, lineHeight: 1,
+                color: water >= waterGoal.glasses ? '#4a7c2f' : '#0c447c',
+                fontFamily: "'DM Serif Display', Georgia, serif",
+                transition: 'color 0.3s ease',
+              })}>
+                {Math.round((water / waterGoal.glasses) * 100)}%
+              </div>
+              <div style={s({ fontSize: 11, color: '#9a9a92', fontWeight: 500 })}>
+                {water >= waterGoal.glasses ? 'Goal reached 🌿' : `${waterGoal.glasses - water} glass${waterGoal.glasses - water === 1 ? '' : 'es'} to go`}
               </div>
             </div>
           </div>
