@@ -858,18 +858,31 @@ export default function Dashboard() {
       {/* ── END FIX 2 ── */}
 
       {/* Day selector */}
-      <div style={s({ display: 'flex', gap: 6, padding: '16px 22px 0', overflowX: 'auto', scrollbarWidth: 'none' })}>
-        {days.map((d, i) => (
-          <button key={i} onClick={() => { setCurrentDay(i); setCheckedEx({}) }} style={s({
-            padding: '8px 6px', minWidth: 44, borderRadius: 10,
-            border: `1px solid ${i === currentDay ? '#7db84a' : '#e4e0d8'}`,
-            background: i === currentDay ? '#e8f5e0' : 'white',
-            cursor: 'pointer', textAlign: 'center', flexShrink: 0,
-          })}>
-            <div style={s({ fontSize: 10, color: i === currentDay ? '#4a7c2f' : '#7a7a72', fontWeight: 600 })}>{d.name.slice(0, 3)}</div>
-            <div style={s({ fontSize: 9, color: i === currentDay ? '#4a7c2f' : '#9a9a92', marginTop: 2, fontWeight: 500 })}>{d.type.slice(0, 3)}</div>
-          </button>
-        ))}
+      <div style={s({ display: 'flex', gap: 7, padding: '16px 22px 0', overflowX: 'auto', scrollbarWidth: 'none' })}>
+        {days.map((d, i) => {
+          const isActive = i === currentDay
+          const isToday = i === todayIdx
+          return (
+            <button key={i} onClick={() => { setCurrentDay(i); setCheckedEx({}) }} style={s({
+              flexShrink: 0, minWidth: 52,
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
+              padding: '10px 10px 8px', borderRadius: 14, cursor: 'pointer', textAlign: 'center',
+              border: `1.5px solid ${isActive ? '#1a1a18' : isToday ? '#7db84a' : '#e4e0d8'}`,
+              background: isActive ? '#1a1a18' : 'white',
+              transition: 'all 0.2s ease',
+            })}>
+              <div style={s({ fontSize: 11, fontWeight: 600, color: isActive ? 'white' : isToday ? '#4a7c2f' : '#9a9a92' })}>
+                {d.name.slice(0, 3).toUpperCase()}
+              </div>
+              <div style={s({ fontSize: 9, fontWeight: 500, letterSpacing: '0.03em', color: isActive ? 'rgba(255,255,255,0.5)' : isToday ? '#7db84a' : '#c4c0b8' })}>
+                {d.type.slice(0, 3).toUpperCase()}
+              </div>
+              {isToday && !isActive && (
+                <div style={s({ width: 4, height: 4, borderRadius: '50%', background: '#7db84a', marginTop: 1 })}/>
+              )}
+            </button>
+          )
+        })}
       </div>
 
       {/* Exercises */}
