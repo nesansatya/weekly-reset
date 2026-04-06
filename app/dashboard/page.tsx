@@ -857,6 +857,61 @@ export default function Dashboard() {
       )}
       {/* ── END FIX 2 ── */}
 
+      {/* ── Empty state — shown to new users with nothing logged yet ── */}
+      {profileLoaded && mood === 0 && energy === 0 && !checkinDone && Object.values(checkedHabits).every(v => !v) && water === 0 && (
+        <div style={s({ margin: '16px 22px 0', background: '#1a1a18', borderRadius: 20, padding: '24px 20px', border: '1px solid rgba(125,184,74,0.3)', position: 'relative', overflow: 'hidden' })}>
+          <div style={s({ position: 'absolute', width: 200, height: 200, borderRadius: '50%', background: '#7db84a', opacity: 0.05, bottom: -80, right: -60, pointerEvents: 'none' })}/>
+          <div style={s({ position: 'relative', zIndex: 1 })}>
+            <div style={s({ display: 'inline-block', background: 'rgba(125,184,74,0.2)', border: '1px solid rgba(125,184,74,0.35)', color: '#a8c48a', borderRadius: 20, padding: '4px 12px', fontSize: 11, fontWeight: 700, marginBottom: 14, letterSpacing: '0.04em' })}>
+              ✦ Day 1 starts now
+            </div>
+            <div style={s({ fontSize: 22, fontWeight: 700, color: 'white', fontFamily: "'DM Serif Display', Georgia, serif", lineHeight: 1.25, marginBottom: 10 })}>
+              Your reset begins today.
+            </div>
+            <div style={s({ fontSize: 13, color: 'rgba(255,255,255,0.55)', lineHeight: 1.6, marginBottom: 20 })}>
+              Two things. That's all it takes to start. Check in to set your day, then drink your first glass of water.
+            </div>
+            <div style={s({ display: 'flex', flexDirection: 'column', gap: 10 })}>
+              {/* Primary — morning check-in */}
+              <button onClick={() => router.push('/checkin?type=morning')} style={s({ display: 'flex', alignItems: 'center', gap: 12, background: '#4a7c2f', border: '1px solid #4a7c2f', borderRadius: 14, padding: '14px 16px', cursor: 'pointer', textAlign: 'left', fontFamily: "'DM Sans', Arial, sans-serif" })}>
+                <div style={s({ width: 36, height: 36, borderRadius: 10, background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 })}>
+                  <svg width="18" height="18" viewBox="0 0 22 22" fill="none">
+                    <circle cx="11" cy="8" r="3.5" stroke="white" strokeWidth="1.6"/>
+                    <path d="M4 19C4 15.69 7.13 13 11 13C14.87 13 18 15.69 18 19" stroke="white" strokeWidth="1.6" strokeLinecap="round"/>
+                    <path d="M16 3C17.1 3 18 3.9 18 5V7H14V5C14 3.9 14.9 3 16 3Z" stroke="white" strokeWidth="1.4" strokeLinecap="round"/>
+                  </svg>
+                </div>
+                <div style={s({ flex: 1 })}>
+                  <div style={s({ fontSize: 13, fontWeight: 700, color: 'white', marginBottom: 2 })}>Start morning check-in</div>
+                  <div style={s({ fontSize: 11, color: 'rgba(255,255,255,0.7)' })}>Sets your plan for the day — 2 min</div>
+                </div>
+                <div style={s({ fontSize: 16, color: 'rgba(255,255,255,0.7)' })}>→</div>
+              </button>
+              {/* Secondary — first glass of water */}
+              <button onClick={() => {
+                setWater(1)
+                saveData({ water: 1 })
+                const el = document.getElementById('water-section')
+                if (el) el.scrollIntoView({ behavior: 'smooth' })
+              }} style={s({ display: 'flex', alignItems: 'center', gap: 12, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 14, padding: '14px 16px', cursor: 'pointer', textAlign: 'left', fontFamily: "'DM Sans', Arial, sans-serif" })}>
+                <div style={s({ width: 36, height: 36, borderRadius: 10, background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 })}>
+                  <svg width="18" height="18" viewBox="0 0 22 22" fill="none">
+                    <path d="M11 3C11 3 5 9.5 5 13.5C5 16.81 7.69 19.5 11 19.5C14.31 19.5 17 16.81 17 13.5C17 9.5 11 3 11 3Z" stroke="rgba(255,255,255,0.7)" strokeWidth="1.6" strokeLinejoin="round"/>
+                    <path d="M8 14.5C8.5 16 9.5 17 11 17" stroke="rgba(255,255,255,0.4)" strokeWidth="1.4" strokeLinecap="round"/>
+                  </svg>
+                </div>
+                <div style={s({ flex: 1 })}>
+                  <div style={s({ fontSize: 13, fontWeight: 700, color: 'white', marginBottom: 2 })}>Log your first glass</div>
+                  <div style={s({ fontSize: 11, color: 'rgba(255,255,255,0.5)' })}>Tap to log 250ml right now</div>
+                </div>
+                <div style={s({ fontSize: 16, color: 'rgba(255,255,255,0.3)' })}>↓</div>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* ── END empty state ── */}
+
       {/* Day selector */}
       <div style={s({ display: 'flex', gap: 7, padding: '16px 22px 0', overflowX: 'auto', scrollbarWidth: 'none' })}>
         {days.map((d, i) => {
@@ -1020,7 +1075,7 @@ export default function Dashboard() {
 
       {/* Water */}
       <div style={s({ margin: '16px 22px 0' })}>
-        <div style={s({ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: '#7a7a72', textTransform: 'uppercase', marginBottom: 10 })}>Water intake</div>
+        <div id="water-section" style={s({ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: '#7a7a72', textTransform: 'uppercase', marginBottom: 10 })}>Water intake</div>
         {profileLoaded && showWeightPrompt && (
           <div style={s({ background: '#e8f5e0', border: '1px solid #97C459', borderRadius: 14, padding: 16, marginBottom: 10 })}>
             <div style={s({ fontSize: 13, fontWeight: 700, color: '#27500A', marginBottom: 4 })}>Personalise your water goal 💧</div>
