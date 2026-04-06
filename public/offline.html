@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Weekly Reset — Offline</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      min-height: 100dvh;
+      background: #faf8f4;
+      font-family: 'DM Sans', Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px;
+      text-align: center;
+    }
+    .emoji { font-size: 64px; margin-bottom: 24px; }
+    .title {
+      font-size: 26px;
+      font-weight: 700;
+      color: #1a1a18;
+      font-family: 'DM Serif Display', Georgia, serif;
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      font-size: 14px;
+      color: #7a7a72;
+      line-height: 1.6;
+      margin-bottom: 32px;
+      max-width: 280px;
+    }
+    .available {
+      background: white;
+      border: 1px solid #e4e0d8;
+      border-radius: 16px;
+      padding: 20px;
+      width: 100%;
+      max-width: 320px;
+      margin-bottom: 24px;
+      text-align: left;
+    }
+    .available-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #7a7a72;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 14px;
+    }
+    .available-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      font-size: 13px;
+      color: #3d3d3a;
+    }
+    .available-item:last-child { margin-bottom: 0; }
+    .check {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #e8f5e0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      color: #4a7c2f;
+      flex-shrink: 0;
+    }
+    .tip {
+      background: #fff4e0;
+      border: 1px solid #f5d58a;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 12px;
+      color: #633806;
+      line-height: 1.5;
+      margin-bottom: 24px;
+      max-width: 320px;
+      width: 100%;
+    }
+    .retry-btn {
+      background: #1a1a18;
+      color: white;
+      border: none;
+      border-radius: 14px;
+      padding: 14px 40px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'DM Sans', Arial, sans-serif;
+      width: 100%;
+      max-width: 320px;
+    }
+    .retry-btn:active { opacity: 0.8; }
+    .brand {
+      margin-top: 32px;
+      font-size: 11px;
+      color: #b0aba3;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+    }
+  </style>
+</head>
+<body>
+  <div class="emoji">📵</div>
+  <div class="title">You're offline</div>
+  <div class="subtitle">
+    No internet connection detected. Turn on WiFi or mobile data to continue.
+  </div>
+
+  <div class="available">
+    <div class="available-title">✅ Still available offline</div>
+    <div class="available-item">
+      <div class="check">✓</div>
+      Today's workout plan
+    </div>
+    <div class="available-item">
+      <div class="check">✓</div>
+      Your habit checklist
+    </div>
+    <div class="available-item">
+      <div class="check">✓</div>
+      Water tracker
+    </div>
+    <div class="available-item">
+      <div class="check">✓</div>
+      Motivational quotes
+    </div>
+  </div>
+
+  <div class="tip">
+    💡 Changes made offline will sync automatically when you reconnect.
+  </div>
+
+  <button class="retry-btn" onclick="window.location.reload()">
+    Try again
+  </button>
+
+  <div class="brand">WEEKLY RESET</div>
+
+  <script>
+    // Auto retry when connection is restored
+    window.addEventListener('online', () => {
+      window.location.reload()
+    })
+
+    // Check connection every 5 seconds
+    setInterval(() => {
+      if (navigator.onLine) window.location.reload()
+    }, 5000)
+  </script>
+</body>
+</html>

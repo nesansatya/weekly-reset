@@ -41,6 +41,15 @@ export default function RootLayout({
         <ErrorBoundary>
     <RamadanProvider>
     <OneSignalInit />
+        <script dangerouslySetInnerHTML={{ __html: `
+          if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+              navigator.serviceWorker.register('/sw.js')
+                .then(function(reg) { console.log('SW registered'); })
+                .catch(function(err) { console.log('SW error:', err); });
+            });
+          }
+        `}} />
           <SessionWatcher />
           <VersionCheck />
           {children}
