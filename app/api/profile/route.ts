@@ -39,7 +39,7 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from('users')
-    .select('weight_kg, full_name, is_pro, subscription_status, subscription_period_end, religion, age_range, fitness_level, workout_days_per_week, sleep_quality, health_challenge, work_schedule, body_feeling, eating_habits, water_intake, stress_level')
+    .select('weight_kg, full_name, is_pro, subscription_status, subscription_period_end, religion, age_range, fitness_level, workout_days_per_week, sleep_quality, health_challenge, work_schedule, body_feeling, eating_habits, water_intake, stress_level, if_mode_enabled, if_protocol, if_fast_start_time, if_custom_fast_hours')
     .eq('id', user.id)
     .single()
 
@@ -79,9 +79,16 @@ export async function POST(request: Request) {
   const allowedReligions = ['Islam', 'Christianity', 'Hinduism', 'Buddhism', 'Others', 'Prefer not to say']
   const religion = allowedReligions.includes(body.religion) ? body.religion : null
 
+  // IF Mode settings
+  const ifUpdate: Record<string, any> = {}
+  if (typeof body.if_mode_enabled === 'boolean') ifUpdate.if_mode_enabled = body.if_mode_enabled
+  if (body.if_protocol) ifUpdate.if_protocol = body.if_protocol
+  if (body.if_fast_start_time) ifUpdate.if_fast_start_time = body.if_fast_start_time
+  if (body.if_custom_fast_hours) ifUpdate.if_custom_fast_hours = body.if_custom_fast_hours
+
   const { data, error } = await supabase
     .from('users')
-    .update({ weight_kg: weight, ...(religion && { religion }) })
+    .update({ weight_kg: weight, ...(religion && { religion }), ...ifUpdate })
     .eq('id', user.id)
     .select()
     .single()

@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '../lib/supabase/client'
 import AuthGuard from '../components/AuthGuard'
 import RamadanBanner from '../components/RamadanBanner'
+import IFBanner from '../components/IFBanner'
 
 const days = [
   { name: 'Monday', type: 'Strength', duration: '30–40 min', exercises: [
@@ -628,6 +629,9 @@ export default function Dashboard() {
 
       {/* Ramadan Banner */}
       <RamadanBanner />
+
+      {/* Intermittent Fasting Banner */}
+      <IFBanner isPro={isPro} />
 
       {/* 7-Day Streak Reward */}
       {showStreakReward && !isPro && (
