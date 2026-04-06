@@ -5,6 +5,7 @@ import { createClient } from '../lib/supabase/client'
 import AuthGuard from '../components/AuthGuard'
 import RamadanBanner from '../components/RamadanBanner'
 import IFBanner from '../components/IFBanner'
+import confetti from 'canvas-confetti'
 
 const days = [
   { name: 'Monday', type: 'Strength', duration: '30–40 min', exercises: [
@@ -331,6 +332,9 @@ export default function Dashboard() {
   const [weightUnit, setWeightUnit] = useState<'kg' | 'lbs'>('kg')
   const [isOffline, setIsOffline] = useState(false)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // ── NEW: confetti canvas ref ─────────────────────────────
+  const confettiRef = useRef<HTMLCanvasElement>(null)
+  // ────────────────────────────────────────────────────────
   const [fitnessLevel, setFitnessLevel] = useState('')
   const [sleepQuality, setSleepQuality] = useState('')
   const [healthChallenge, setHealthChallenge] = useState('')
@@ -404,7 +408,10 @@ export default function Dashboard() {
           const currentStreak = streakData.data.current_streak || 0
           setStreak(currentStreak)
           const dismissed = localStorage.getItem('wr_streak_reward_dismissed')
-          if (currentStreak >= 7 && !dismissed) setShowStreakReward(true)
+          if (currentStreak >= 7 && !dismissed) {
+            setShowStreakReward(true)
+            setTimeout(() => fireConfetti(currentStreak), 400)
+          }
         }
         if (profile.data?.weight_kg) {
           setWeightKg(profile.data.weight_kg)
@@ -434,6 +441,27 @@ export default function Dashboard() {
     }
     init()
   }, [])
+
+  // ── NEW: fire confetti on streak milestone ───────────────
+  function fireConfetti(streakCount: number) {
+    if (!confettiRef.current) return
+    const myConfetti = confetti.create(confettiRef.current, { resize: true, useWorker: false })
+    const colors = streakCount >= 90
+      ? ['#f0d080','#c4a35a','#ffffff','#7db84a']
+      : streakCount >= 30
+      ? ['#f0d080','#c4a35a','#ffffff']
+      : ['#f0d080','#c4a35a']
+    myConfetti({
+      particleCount: streakCount >= 90 ? 120 : streakCount >= 30 ? 80 : 50,
+      spread: 70,
+      origin: { x: 0.5, y: 0.2 },
+      colors,
+      ticks: 180,
+      gravity: 1.2,
+      scalar: 0.85,
+    })
+  }
+  // ────────────────────────────────────────────────────────
 
   async function saveWeight() {
     let kg = parseFloat(weightInput)
@@ -658,32 +686,70 @@ export default function Dashboard() {
       <RamadanBanner />
       <IFBanner isPro={isPro} />
 
-      {/* 7-Day Streak Reward */}
+      {/* 7-Day Streak Reward — modal overlay */}
       {showStreakReward && !isPro && (
         <div style={s({
-          margin: '16px 22px 0',
-          background: '#1a1a18',
-          borderRadius: 16,
-          padding: 20,
-          border: '1px solid #c4a35a',
-          position: 'relative',
-          overflow: 'hidden',
+          position: 'fixed', inset: 0, zIndex: 200,
+          background: 'rgba(10,10,8,0.75)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: 24,
         })}>
-          <div style={s({ position: 'absolute', width: 150, height: 150, borderRadius: '50%', background: '#c4a35a', opacity: 0.06, top: -40, right: -40 })} />
-          <div style={s({ position: 'relative', zIndex: 1 })}>
-            <div style={s({ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 })}>
-              <div style={s({ display: 'flex', alignItems: 'center', gap: 8 })}>
-                <div style={s({ fontSize: 28 })}>🔥</div>
-                <div>
-                  <div style={s({ fontSize: 14, fontWeight: 700, color: '#f0d080' })}>{streak}-Day Streak Reward!</div>
-                  <div style={s({ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 2 })}>You earned this</div>
-                </div>
+          <div style={s({
+            width: '100%', maxWidth: 360,
+            background: '#1a1a18', borderRadius: 20,
+            border: '1px solid #c4a35a',
+            padding: '24px 20px 20px',
+            position: 'relative', overflow: 'hidden',
+            animation: 'modalIn 0.4s cubic-bezier(0.34,1.2,0.64,1) forwards',
+          })}>
+            {/* Confetti canvas */}
+            <canvas ref={confettiRef} style={s({ position: 'absolute', inset: 0, pointerEvents: 'none', borderRadius: 20, width: '100%', height: '100%' })}/>
+
+            {/* Glow */}
+            <div style={s({ position: 'absolute', width: 200, height: 200, borderRadius: '50%', background: '#c4a35a', opacity: 0.05, top: -80, right: -60, pointerEvents: 'none' })}/>
+
+            {/* Close */}
+            <button onClick={() => { setShowStreakReward(false); localStorage.setItem('wr_streak_reward_dismissed','true') }}
+              style={s({ position: 'absolute', top: 14, right: 16, background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: 22, cursor: 'pointer', lineHeight: 1 })}>×</button>
+
+            {/* Flame + number */}
+            <div style={s({ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 })}>
+              <span style={{ fontSize: 36, display: 'block', animation: 'flamePulse 1.2s ease-in-out infinite' }}>🔥</span>
+              <div>
+                <div style={s({ fontSize: 42, fontWeight: 700, color: '#f0d080', fontFamily: "'DM Serif Display', Georgia, serif", lineHeight: 1 })}>{streak}</div>
+                <div style={s({ fontSize: 14, color: 'rgba(255,255,255,0.5)', fontWeight: 600 })}>day streak</div>
               </div>
-              <button onClick={() => { setShowStreakReward(false); localStorage.setItem('wr_streak_reward_dismissed', 'true') }} style={s({ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: 18, cursor: 'pointer', padding: 0 })}>×</button>
             </div>
-            <div style={s({ fontSize: 13, color: 'rgba(255,255,255,0.7)', lineHeight: 1.6, marginBottom: 16 })}>
-              You've shown up <span style={{ color: '#f0d080', fontWeight: 700 }}>{streak} days straight</span>. That's rare — and it deserves a reward. Unlock Pro at <span style={{ color: '#f0d080', fontWeight: 700 }}>50% off for your first year</span>, then full price after.
+
+            {/* Title */}
+            <div style={s({ fontSize: 16, fontWeight: 700, color: 'white', marginBottom: 6 })}>
+              {streak >= 90 ? "90 days. You've changed your life." :
+               streak >= 60 ? "60 days. You're in rare company." :
+               streak >= 30 ? "30 days. A real habit is born." :
+               streak >= 14 ? "Two weeks straight. That's discipline." :
+               "One week down. You're just getting started."}
             </div>
+
+            {/* Message */}
+            <div style={s({ fontSize: 13, color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, marginBottom: 16 })}>
+              You've shown up <span style={{ color: '#f0d080', fontWeight: 700 }}>{streak} days</span> in a row. Unlock Pro at <span style={{ color: '#f0d080', fontWeight: 700 }}>50% off</span> — you've earned it.
+            </div>
+
+            {/* Milestone dots */}
+            <div style={s({ display: 'flex', gap: 6, marginBottom: 18 })}>
+              {[7,14,30,60,90].map(ms => (
+                <div key={ms} style={s({
+                  flex: 1, borderRadius: 8, padding: '6px 4px', textAlign: 'center',
+                  background: ms <= streak ? 'rgba(196,163,90,0.2)' : 'rgba(255,255,255,0.04)',
+                  border: `1px solid ${ms === streak ? '#c4a35a' : ms < streak ? 'rgba(196,163,90,0.3)' : 'rgba(255,255,255,0.08)'}`,
+                })}>
+                  <div style={s({ fontSize: 13, fontWeight: 700, color: ms <= streak ? '#f0d080' : 'rgba(255,255,255,0.25)' })}>{ms}</div>
+                  <div style={s({ fontSize: 9, color: ms <= streak ? 'rgba(240,208,128,0.5)' : 'rgba(255,255,255,0.15)' })}>days</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Pricing */}
             <div style={s({ background: 'rgba(196,163,90,0.1)', border: '1px solid rgba(196,163,90,0.2)', borderRadius: 10, padding: '10px 14px', marginBottom: 16 })}>
               <div style={s({ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 })}>
                 <div style={s({ fontSize: 12, color: 'rgba(255,255,255,0.5)' })}>Monthly</div>
@@ -699,14 +765,18 @@ export default function Dashboard() {
                   <div style={s({ fontSize: 13, fontWeight: 700, color: '#f0d080' })}>RM79.50/yr</div>
                 </div>
               </div>
-              <div style={s({ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginTop: 8 })}>50% off for 12 months, then full price from Year 2. No surprises.</div>
+              <div style={s({ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginTop: 8 })}>50% off for 12 months, then full price from Year 2.</div>
             </div>
+
+            {/* CTAs */}
             <div style={s({ display: 'flex', gap: 8 })}>
-              <button onClick={() => router.push('/upgrade?coupon=dTaJGxYd&source=streak')} style={s({ flex: 1, padding: '12px 16px', background: '#c4a35a', color: '#1a1a18', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif" })}>
+              <button onClick={() => router.push('/upgrade?coupon=dTaJGxYd&source=streak')}
+                style={s({ flex: 1, padding: '12px 16px', background: '#c4a35a', color: '#1a1a18', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif" })}>
                 Claim my 50% off →
               </button>
-              <button onClick={() => { setShowStreakReward(false); localStorage.setItem('wr_streak_reward_dismissed', 'true') }} style={s({ padding: '12px 16px', background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, fontSize: 12, cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif" })}>
-                Maybe later
+              <button onClick={() => { setShowStreakReward(false); localStorage.setItem('wr_streak_reward_dismissed','true') }}
+                style={s({ padding: '12px 14px', background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, fontSize: 12, cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif" })}>
+                Later
               </button>
             </div>
           </div>
