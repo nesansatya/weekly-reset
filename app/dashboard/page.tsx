@@ -685,10 +685,17 @@ export default function Dashboard() {
         </div>
         <div style={s({ display: 'flex', gap: 8, alignItems: 'center', marginTop: 8 })}>
           <button onClick={() => router.push('/checkin')} style={s({ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(196,163,90,0.15)', border: '1px solid rgba(196,163,90,0.35)', borderRadius: 20, padding: '6px 12px', cursor: 'pointer', fontSize: 11, fontWeight: 700, color: '#f0d080', fontFamily: "'DM Sans', Arial, sans-serif" })}>
-            🌅 Check in
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+              <circle cx="8" cy="8" r="3" stroke="#f0d080" strokeWidth="1.6"/>
+              <path d="M8 1V3M8 13V15M1 8H3M13 8H15M2.93 2.93L4.34 4.34M11.66 11.66L13.07 13.07M13.07 2.93L11.66 4.34M4.34 11.66L2.93 13.07" stroke="#f0d080" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+            Check in
           </button>
-          <button onClick={() => router.push('/dashboard/profile')} style={s({ width: 42, height: 42, borderRadius: '50%', background: 'rgba(125,184,74,0.2)', border: '1px solid rgba(125,184,74,0.35)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 })}>
-            🌿
+          <button onClick={() => router.push('/dashboard/profile')} style={s({ width: 42, height: 42, borderRadius: '50%', background: 'rgba(125,184,74,0.2)', border: '1px solid rgba(125,184,74,0.35)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 })}>
+            <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
+              <circle cx="11" cy="8" r="3.5" stroke="#a8c48a" strokeWidth="1.6"/>
+              <path d="M4 19C4 15.69 7.13 13 11 13C14.87 13 18 15.69 18 19" stroke="#a8c48a" strokeWidth="1.6" strokeLinecap="round"/>
+            </svg>
           </button>
         </div>
       </div>
@@ -1160,21 +1167,44 @@ export default function Dashboard() {
         paddingBottom: 'calc(env(safe-area-inset-bottom) + 10px)',
         zIndex: 100,
       })}>
-        {[
-          { icon: '🏠', label: 'Today', path: '/dashboard', active: true },
-          { icon: '📊', label: 'Summary', path: '/dashboard/summary', active: false },
-          { icon: '🥗', label: 'Meals', path: '/dashboard/meals', active: false },
-          { icon: '📈', label: 'Progress', path: '/dashboard/progress', active: false },
-        ].map(n => (
-          <button key={n.label} onClick={() => router.push(n.path)} style={s({
-            flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
-            gap: 3, cursor: 'pointer', padding: '6px 0', background: 'none', border: 'none',
-          })}>
-            <div style={{ fontSize: 18 }}>{n.icon}</div>
-            <div style={s({ fontSize: 10, fontWeight: n.active ? 700 : 500, color: n.active ? '#4a7c2f' : '#7a7a72', fontFamily: "'DM Sans', Arial, sans-serif" })}>{n.label}</div>
-            {n.active && <div style={s({ width: 4, height: 4, borderRadius: '50%', background: '#4a7c2f' })}/>}
-          </button>
-        ))}
+        {/* Today */}
+        <button onClick={() => router.push('/dashboard')} style={s({ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, cursor: 'pointer', padding: '4px 0', background: 'none', border: 'none' })}>
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+            <path d="M3 9.5L11 3L19 9.5V19C19 19.55 18.55 20 18 20H14V14H8V20H4C3.45 20 3 19.55 3 19V9.5Z" stroke="#4a7c2f" strokeWidth="1.6" strokeLinejoin="round" fill="rgba(74,124,47,0.12)"/>
+          </svg>
+          <div style={s({ fontSize: 10, fontWeight: 700, color: '#4a7c2f', fontFamily: "'DM Sans', Arial, sans-serif" })}>Today</div>
+          <div style={s({ width: 4, height: 4, borderRadius: '50%', background: '#4a7c2f' })}/>
+        </button>
+
+        {/* Summary */}
+        <button onClick={() => router.push('/dashboard/summary')} style={s({ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, cursor: 'pointer', padding: '4px 0', background: 'none', border: 'none' })}>
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+            <rect x="3" y="12" width="4" height="7" rx="1" stroke="#9a9a92" strokeWidth="1.6"/>
+            <rect x="9" y="7" width="4" height="12" rx="1" stroke="#9a9a92" strokeWidth="1.6"/>
+            <rect x="15" y="3" width="4" height="16" rx="1" stroke="#9a9a92" strokeWidth="1.6"/>
+          </svg>
+          <div style={s({ fontSize: 10, fontWeight: 500, color: '#7a7a72', fontFamily: "'DM Sans', Arial, sans-serif" })}>Summary</div>
+        </button>
+
+        {/* Meals */}
+        <button onClick={() => router.push('/dashboard/meals')} style={s({ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, cursor: 'pointer', padding: '4px 0', background: 'none', border: 'none' })}>
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+            <path d="M4 6C4 5.45 4.45 5 5 5H17C17.55 5 18 5.45 18 6V8C18 10.76 15.31 13 12 13H10C6.69 13 4 10.76 4 8V6Z" stroke="#9a9a92" strokeWidth="1.6"/>
+            <path d="M11 13V18M8 18H14" stroke="#9a9a92" strokeWidth="1.6" strokeLinecap="round"/>
+            <path d="M4 7H3C2.45 7 2 7.45 2 8V9C2 10.1 2.9 11 4 11" stroke="#9a9a92" strokeWidth="1.6" strokeLinecap="round"/>
+            <path d="M18 7H19C19.55 7 20 7.45 20 8V9C20 10.1 19.1 11 18 11" stroke="#9a9a92" strokeWidth="1.6" strokeLinecap="round"/>
+          </svg>
+          <div style={s({ fontSize: 10, fontWeight: 500, color: '#7a7a72', fontFamily: "'DM Sans', Arial, sans-serif" })}>Meals</div>
+        </button>
+
+        {/* Progress */}
+        <button onClick={() => router.push('/dashboard/progress')} style={s({ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, cursor: 'pointer', padding: '4px 0', background: 'none', border: 'none' })}>
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+            <path d="M3 16L8 10L12 13L16 7L19 9" stroke="#9a9a92" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M16 7H19V10" stroke="#9a9a92" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          <div style={s({ fontSize: 10, fontWeight: 500, color: '#7a7a72', fontFamily: "'DM Sans', Arial, sans-serif" })}>Progress</div>
+        </button>
       </div>
 
     </main>
