@@ -343,6 +343,8 @@ export default function Dashboard() {
 
   // ── NEW: habit bounce state ──────────────────────────────
   const [bouncingHabit, setBouncingHabit] = useState<number | null>(null)
+  // ── NEW: water glass tap animation state ─────────────────
+  const [tappedGlass, setTappedGlass] = useState<number | null>(null)
   // ────────────────────────────────────────────────────────
 
   useEffect(() => {
@@ -928,23 +930,66 @@ export default function Dashboard() {
               <div style={s({ fontSize: 11, color: '#7a7a72', marginTop: 2 })}>Each 💧 = 250ml · {waterGoal.glasses} glasses to reach your goal</div>
             </div>
             <div style={s({ display: 'flex', alignItems: 'center', gap: 6 })}>
-              <div style={s({ background: '#e8f5e0', color: '#4a7c2f', borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 600 })}>{water} / {waterGoal.glasses}</div>
+              <div style={s({ background: water >= waterGoal.glasses ? '#1a1a18' : '#e8f5e0', color: water >= waterGoal.glasses ? '#a8c48a' : '#4a7c2f', borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 600, transition: 'all 0.3s ease' })}>{water} / {waterGoal.glasses}</div>
               {weightKg && (
                 <button onClick={() => setShowWeightPrompt(!showWeightPrompt)} style={s({ background: 'none', border: 'none', fontSize: 16, cursor: 'pointer' })}>⚙️</button>
               )}
             </div>
           </div>
-          <div style={s({ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 12 })}>
+
+          {/* ── Water bottle visual ── */}
+          <div style={s({ display: 'flex', justifyContent: 'center', margin: '14px 0' })}>
+            <div style={s({ position: 'relative', width: 72 })}>
+              {/* Bottle neck */}
+              <div style={s({ width: 32, height: 14, background: '#e4f0ff', borderRadius: '4px 4px 0 0', border: '1.5px solid #bdd6f5', borderBottom: 'none', margin: '0 auto' })}/>
+              {/* Bottle body */}
+              <div style={s({ width: 72, height: 96, borderRadius: '8px 8px 14px 14px', border: '1.5px solid #bdd6f5', background: '#f0f8ff', overflow: 'hidden', position: 'relative' })}>
+                {/* Fill */}
+                <div style={s({
+                  position: 'absolute', bottom: 0, left: 0, right: 0,
+                  background: water >= waterGoal.glasses ? '#4a9de8' : '#60a5e8',
+                  height: `${Math.round((water / waterGoal.glasses) * 100)}%`,
+                  transition: 'height 0.5s cubic-bezier(0.34,1.2,0.64,1)',
+                  borderRadius: '0 0 12px 12px',
+                })}>
+                  {/* Wave on surface */}
+                  <div style={s({
+                    position: 'absolute', top: -4, left: '-10%', width: '120%', height: 8,
+                    background: '#7bb8f0', borderRadius: '50%',
+                    animation: 'waterWave 2s ease-in-out infinite',
+                  })}/>
+                </div>
+                {/* Percentage */}
+                <div style={s({
+                  position: 'absolute', top: '50%', left: '50%',
+                  transform: 'translate(-50%,-50%)',
+                  fontSize: 13, fontWeight: 700, zIndex: 2,
+                  color: (water / waterGoal.glasses) >= 0.55 ? 'white' : '#0c447c',
+                  transition: 'color 0.3s ease',
+                })}>
+                  {Math.round((water / waterGoal.glasses) * 100)}%
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ── Glasses grid with pop animation ── */}
+          <div style={s({ display: 'flex', gap: 7, flexWrap: 'wrap' })}>
             {Array.from({ length: waterGoal.glasses }, (_, i) => (
               <div key={i} onClick={() => {
                 const newW = i < water ? i : i + 1
                 setWater(newW)
                 saveData({ water: newW })
+                setTappedGlass(i)
+                setTimeout(() => setTappedGlass(null), 350)
               }} style={s({
                 width: 34, height: 34, borderRadius: 8, cursor: 'pointer',
                 border: `1.5px solid ${i < water ? '#93c5fd' : '#e4e0d8'}`,
                 background: i < water ? '#dbeeff' : '#f9f7f3',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17,
+                animation: tappedGlass === i
+                  ? (i < water ? 'glassUnpop 0.2s ease forwards' : 'glassPop 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards')
+                  : 'none',
               })}>💧</div>
             ))}
           </div>

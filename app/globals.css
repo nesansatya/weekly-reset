@@ -79,3 +79,23 @@ input {
   from { opacity: 0; transform: scale(0) rotate(-20deg); }
   to   { opacity: 1; transform: scale(1) rotate(0deg); }
 }
+
+/* ── Water fill animations ── */
+@keyframes waterWave {
+  0%, 100% { transform: translateX(0) scaleY(1); }
+  50%       { transform: translateX(4px) scaleY(1.3); }
+}
+
+@keyframes glassPop {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.25); }
+  60%  { transform: scale(0.92); }
+  80%  { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+@keyframes glassUnpop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(0.85); }
+  100% { transform: scale(1); }
+}
