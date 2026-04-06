@@ -52,3 +52,30 @@ input {
 .badge-glow {
   animation: badge-glow 2.4s ease-in-out infinite;
 }
+
+/* ── Habit check-off animations ── */
+@keyframes habitBounce {
+  0%   { transform: scale(1); }
+  25%  { transform: scale(1.06); }
+  50%  { transform: scale(0.96); }
+  75%  { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+
+@keyframes habitUncheck {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+
+@keyframes iconPop {
+  0%   { transform: scale(1) rotate(0deg); }
+  40%  { transform: scale(1.35) rotate(-8deg); }
+  70%  { transform: scale(0.9) rotate(4deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+@keyframes checkmarkIn {
+  from { opacity: 0; transform: scale(0) rotate(-20deg); }
+  to   { opacity: 1; transform: scale(1) rotate(0deg); }
+}

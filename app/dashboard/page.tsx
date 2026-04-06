@@ -215,36 +215,30 @@ function getWorkoutDifficulty(
   coachMessage: string
   multiplier: number
 } {
-  // Base level from fitness
   let base: DifficultyLevel =
     fitnessLevel === 'Complete beginner' ? 'easy' :
     fitnessLevel === 'Some experience' ? 'moderate' :
     fitnessLevel === 'Intermediate' ? 'hard' :
     fitnessLevel === 'Pretty active' ? 'push' : 'moderate'
 
-  // Day modifier — Wednesday & Thursday are lighter days
   const isLighterDay = dayIndex === 2 || dayIndex === 3
   if (isLighterDay && base === 'push') base = 'hard'
   if (isLighterDay && base === 'hard') base = 'moderate'
 
-  // Mood & energy override — if user is having a rough day, drop one level
   const moodEnergy = (mood + energy) / 2
   let level = base
   if (mood > 0 && energy > 0) {
     if (moodEnergy <= 2) {
-      // Rough day — drop one level but never skip
       level = base === 'push' ? 'hard' :
               base === 'hard' ? 'moderate' :
               base === 'moderate' ? 'easy' : 'easy'
     } else if (moodEnergy >= 4.5 && streak >= 7) {
-      // Feeling great + strong streak — push harder
       level = base === 'easy' ? 'moderate' :
               base === 'moderate' ? 'hard' :
               base === 'hard' ? 'push' : 'push'
     }
   }
 
-  // Streak booster — 7+ day streak nudges up
   if (streak >= 14 && level !== 'push') {
     level = level === 'easy' ? 'moderate' :
             level === 'moderate' ? 'hard' : 'push'
@@ -298,13 +292,11 @@ function getWorkoutDifficulty(
 
 function adjustSets(sets: string, multiplier: number): string {
   if (!sets) return sets
-  // Handle "3 × 12" format
   const match = sets.match(/^(\d+)\s*[×x]\s*(\d+)(.*)$/)
   if (match) {
     const reps = Math.round(parseInt(match[2]) * multiplier)
     return `${match[1]} × ${reps}${match[3]}`
   }
-  // Handle "3 × 30 sec" format
   const timeMatch = sets.match(/^(\d+)\s*[×x]\s*(\d+)\s*(sec|min)(.*)$/)
   if (timeMatch) {
     const time = Math.round(parseInt(timeMatch[2]) * multiplier)
@@ -349,7 +341,10 @@ export default function Dashboard() {
   const [checkinDone, setCheckinDone] = useState(false)
   const [showStreakReward, setShowStreakReward] = useState(false)
 
-  // #5 — Offline detection
+  // ── NEW: habit bounce state ──────────────────────────────
+  const [bouncingHabit, setBouncingHabit] = useState<number | null>(null)
+  // ────────────────────────────────────────────────────────
+
   useEffect(() => {
     function handleOffline() { setIsOffline(true) }
     function handleOnline() { setIsOffline(false) }
@@ -370,7 +365,6 @@ export default function Dashboard() {
       setUserName(name.split(' ')[0])
       const today = new Date().toISOString().split('T')[0]
       try {
-        // Load cached profile instantly for fast first render
         try {
           const cached = localStorage.getItem('wr_profile')
           if (cached) {
@@ -404,11 +398,9 @@ export default function Dashboard() {
         }
         if (exercise.data?.completed_exercises) setCheckedEx(exercise.data.completed_exercises)
         if (habit.data?.checked_habits) setCheckedHabits(habit.data.checked_habits)
-        // #6 — streak only set once here, not again in saveData
         if (streakData.data) {
           const currentStreak = streakData.data.current_streak || 0
           setStreak(currentStreak)
-          // Show streak reward if 7+ days and not dismissed before
           const dismissed = localStorage.getItem('wr_streak_reward_dismissed')
           if (currentStreak >= 7 && !dismissed) setShowStreakReward(true)
         }
@@ -419,11 +411,9 @@ export default function Dashboard() {
           setShowWeightPrompt(true)
         }
         if (profile.data?.is_pro) setIsPro(profile.data.is_pro)
-        // Cache profile for faster next load
         if (profile.data) {
           try { localStorage.setItem('wr_profile', JSON.stringify(profile.data)) } catch (_e) {}
         }
-        // Check if morning check-in done today
         const checkinDate = new Date().toISOString().split('T')[0]
         const checkinRes = await fetchWithTimeout(`/api/checkin?date=${checkinDate}`)
         const checkin = await checkinRes.json()
@@ -462,7 +452,6 @@ export default function Dashboard() {
     } catch (_e) { }
   }
 
-  // #7 — debounced saveData to prevent race conditions
   const saveData = useCallback(async (updates: {
     mood?: number, energy?: number, water?: number,
     habits?: Record<number, boolean>, exercises?: Record<number, boolean>
@@ -522,20 +511,17 @@ export default function Dashboard() {
 
   if (!profileLoaded) return (
     <main style={s({ minHeight: '100dvh', background: '#faf8f4', fontFamily: "'DM Sans', Arial, sans-serif" })}>
-      {/* Skeleton header */}
       <div style={s({ padding: '16px 22px 20px', paddingTop: 'calc(env(safe-area-inset-top) + 16px)', background: '#d4cfc4' })}>
         <div style={s({ width: 80, height: 12, background: '#c4bfb4', borderRadius: 6, marginBottom: 10 })} />
         <div style={s({ width: 140, height: 28, background: '#c4bfb4', borderRadius: 8, marginBottom: 16 })} />
         <div style={s({ width: 100, height: 24, background: '#c4bfb4', borderRadius: 20 })} />
       </div>
-      {/* Skeleton hero card */}
       <div style={s({ margin: '16px 22px 0', background: '#1a1a18', borderRadius: 20, padding: 20 })}>
         <div style={s({ width: 120, height: 10, background: 'rgba(255,255,255,0.1)', borderRadius: 5, marginBottom: 12 })} />
         <div style={s({ width: 180, height: 24, background: 'rgba(255,255,255,0.1)', borderRadius: 8, marginBottom: 12 })} />
         <div style={s({ width: 100, height: 20, background: 'rgba(255,255,255,0.1)', borderRadius: 6, marginBottom: 20 })} />
         <div style={s({ height: 5, background: 'rgba(255,255,255,0.1)', borderRadius: 10 })} />
       </div>
-      {/* Skeleton workout */}
       <div style={s({ margin: '16px 22px 0' })}>
         <div style={s({ width: 120, height: 10, background: '#e4e0d8', borderRadius: 5, marginBottom: 12 })} />
         <div style={s({ background: 'white', borderRadius: 14, border: '1px solid #e4e0d8', overflow: 'hidden' })}>
@@ -560,7 +546,6 @@ export default function Dashboard() {
       paddingBottom: `calc(${BOTTOM_NAV_HEIGHT}px + env(safe-area-inset-bottom))`,
     })}>
 
-      {/* Offline banner */}
       {isOffline && (
         <div style={s({
           background: '#1a1a18', color: 'white',
@@ -627,10 +612,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Ramadan Banner */}
       <RamadanBanner />
-
-      {/* Intermittent Fasting Banner */}
       <IFBanner isPro={isPro} />
 
       {/* 7-Day Streak Reward */}
@@ -644,36 +626,21 @@ export default function Dashboard() {
           position: 'relative',
           overflow: 'hidden',
         })}>
-          {/* Background glow */}
           <div style={s({ position: 'absolute', width: 150, height: 150, borderRadius: '50%', background: '#c4a35a', opacity: 0.06, top: -40, right: -40 })} />
           <div style={s({ position: 'relative', zIndex: 1 })}>
-            {/* Header */}
             <div style={s({ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 })}>
               <div style={s({ display: 'flex', alignItems: 'center', gap: 8 })}>
                 <div style={s({ fontSize: 28 })}>🔥</div>
                 <div>
-                  <div style={s({ fontSize: 14, fontWeight: 700, color: '#f0d080' })}>
-                    {streak}-Day Streak Reward!
-                  </div>
-                  <div style={s({ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 2 })}>
-                    You earned this
-                  </div>
+                  <div style={s({ fontSize: 14, fontWeight: 700, color: '#f0d080' })}>{streak}-Day Streak Reward!</div>
+                  <div style={s({ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 2 })}>You earned this</div>
                 </div>
               </div>
-              <button onClick={() => {
-                setShowStreakReward(false)
-                localStorage.setItem('wr_streak_reward_dismissed', 'true')
-              }} style={s({ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: 18, cursor: 'pointer', padding: 0 })}>
-                ×
-              </button>
+              <button onClick={() => { setShowStreakReward(false); localStorage.setItem('wr_streak_reward_dismissed', 'true') }} style={s({ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: 18, cursor: 'pointer', padding: 0 })}>×</button>
             </div>
-
-            {/* Message */}
             <div style={s({ fontSize: 13, color: 'rgba(255,255,255,0.7)', lineHeight: 1.6, marginBottom: 16 })}>
               You've shown up <span style={{ color: '#f0d080', fontWeight: 700 }}>{streak} days straight</span>. That's rare — and it deserves a reward. Unlock Pro at <span style={{ color: '#f0d080', fontWeight: 700 }}>50% off for your first year</span>, then full price after.
             </div>
-
-            {/* Pricing */}
             <div style={s({ background: 'rgba(196,163,90,0.1)', border: '1px solid rgba(196,163,90,0.2)', borderRadius: 10, padding: '10px 14px', marginBottom: 16 })}>
               <div style={s({ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 })}>
                 <div style={s({ fontSize: 12, color: 'rgba(255,255,255,0.5)' })}>Monthly</div>
@@ -689,35 +656,13 @@ export default function Dashboard() {
                   <div style={s({ fontSize: 13, fontWeight: 700, color: '#f0d080' })}>RM79.50/yr</div>
                 </div>
               </div>
-              <div style={s({ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginTop: 8 })}>
-                50% off for 12 months, then full price from Year 2. No surprises.
-              </div>
+              <div style={s({ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginTop: 8 })}>50% off for 12 months, then full price from Year 2. No surprises.</div>
             </div>
-
-            {/* CTA Buttons */}
             <div style={s({ display: 'flex', gap: 8 })}>
-              <button onClick={() => {
-                router.push('/upgrade?coupon=dTaJGxYd&source=streak')
-              }} style={s({
-                flex: 1, padding: '12px 16px',
-                background: '#c4a35a', color: '#1a1a18',
-                border: 'none', borderRadius: 10,
-                fontSize: 13, fontWeight: 700,
-                cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif",
-              })}>
+              <button onClick={() => router.push('/upgrade?coupon=dTaJGxYd&source=streak')} style={s({ flex: 1, padding: '12px 16px', background: '#c4a35a', color: '#1a1a18', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif" })}>
                 Claim my 50% off →
               </button>
-              <button onClick={() => {
-                setShowStreakReward(false)
-                localStorage.setItem('wr_streak_reward_dismissed', 'true')
-              }} style={s({
-                padding: '12px 16px',
-                background: 'rgba(255,255,255,0.06)',
-                color: 'rgba(255,255,255,0.4)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                borderRadius: 10, fontSize: 12,
-                cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif",
-              })}>
+              <button onClick={() => { setShowStreakReward(false); localStorage.setItem('wr_streak_reward_dismissed', 'true') }} style={s({ padding: '12px 16px', background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, fontSize: 12, cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif" })}>
                 Maybe later
               </button>
             </div>
@@ -728,8 +673,6 @@ export default function Dashboard() {
       {/* Personalised Insight Banner */}
       {(() => {
         const banners = []
-
-        // Sleep
         if (sleepQuality === 'Very poor' || sleepQuality === 'Could be better') banners.push(
           <div key="sleep" style={s({ margin: '12px 22px 0', background: '#e0eeff', border: '1px solid #85B7EB', borderRadius: 14, padding: '12px 16px' })}>
             <div style={s({ fontSize: 13, fontWeight: 700, color: '#0C447C', marginBottom: 2 })}>😴 Sleep is your #1 priority</div>
@@ -742,8 +685,6 @@ export default function Dashboard() {
             <div style={s({ fontSize: 12, color: '#3B6D11', lineHeight: 1.5 })}>You're sleeping well — keep protecting that routine. Good sleep is the foundation of everything else.</div>
           </div>
         )
-
-        // Stress
         if (stressLevel === 'Very high' || stressLevel === 'High') banners.push(
           <div key="stress" style={s({ margin: '12px 22px 0', background: '#f0e8ff', border: '1px solid #b085eb', borderRadius: 14, padding: '12px 16px' })}>
             <div style={s({ fontSize: 13, fontWeight: 700, color: '#4a0c7c', marginBottom: 2 })}>🧘 High stress detected</div>
@@ -756,8 +697,6 @@ export default function Dashboard() {
             <div style={s({ fontSize: 12, color: '#3B6D11', lineHeight: 1.5 })}>Your stress is under control — this is the perfect mental state to build strong habits. Make it count!</div>
           </div>
         )
-
-        // Work schedule
         if (workSchedule === 'Desk job — mostly sitting') banners.push(
           <div key="work" style={s({ margin: '12px 22px 0', background: '#fff4e0', border: '1px solid #f5d58a', borderRadius: 14, padding: '12px 16px' })}>
             <div style={s({ fontSize: 13, fontWeight: 700, color: '#633806', marginBottom: 2 })}>💼 Desk job reminder</div>
@@ -770,8 +709,6 @@ export default function Dashboard() {
             <div style={s({ fontSize: 12, color: '#3B6D11', lineHeight: 1.5 })}>Your body is already moving at work — focus on recovery, sleep and nutrition to complement your active lifestyle.</div>
           </div>
         )
-
-        // Water intake
         if (waterIntake === 'Less than 1L' || waterIntake === '1–1.5L') banners.push(
           <div key="water" style={s({ margin: '12px 22px 0', background: '#e0f4ff', border: '1px solid #85d4eb', borderRadius: 14, padding: '12px 16px' })}>
             <div style={s({ fontSize: 13, fontWeight: 700, color: '#0c4a5c', marginBottom: 2 })}>💧 You need more water</div>
@@ -784,8 +721,6 @@ export default function Dashboard() {
             <div style={s({ fontSize: 12, color: '#3B6D11', lineHeight: 1.5 })}>You're already drinking well — keep it consistent and your energy levels will stay stable all day.</div>
           </div>
         )
-
-        // Fitness level
         if (fitnessLevel === 'Complete beginner') banners.push(
           <div key="fitness" style={s({ margin: '12px 22px 0', background: '#fff4e0', border: '1px solid #f5d58a', borderRadius: 14, padding: '12px 16px' })}>
             <div style={s({ fontSize: 13, fontWeight: 700, color: '#633806', marginBottom: 2 })}>🌱 Beginner tip</div>
@@ -798,11 +733,10 @@ export default function Dashboard() {
             <div style={s({ fontSize: 12, color: 'rgba(255,255,255,0.6)', lineHeight: 1.5 })}>Your fitness base is solid. Add an extra set, push the pace, or add a bonus workout today.</div>
           </div>
         )
-        // Free users get 1 banner only, Pro users get all
         const visibleBanners = isPro ? banners : banners.slice(0, 1)
         return <>{visibleBanners}</>
       })()}
-      
+
       {!isPro && (
         <div style={s({ margin: '12px 22px 0', background: 'linear-gradient(135deg, #e8f5e0, #f0f7e8)', border: '1px solid #97C459', borderRadius: 14, padding: '12px 16px' })}>
           <div style={s({ fontSize: 13, fontWeight: 700, color: '#27500A', marginBottom: 2 })}>✦ Unlock all personalised insights</div>
@@ -888,17 +822,13 @@ export default function Dashboard() {
       {/* Smart Check-in Card */}
       <div style={s({ margin: '16px 22px 0' })}>
         <div style={s({ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: '#7a7a72', textTransform: 'uppercase', marginBottom: 10 })}>Daily Check-ins</div>
-
         {(() => {
           const hour = new Date().getHours()
           const isMorning = hour >= 5 && hour < 12
           const isMidday = hour >= 12 && hour < 15
           const isBedtime = hour >= 20 && hour < 24
-
           return (
             <div style={s({ display: 'flex', flexDirection: 'column', gap: 10 })}>
-
-              {/* Morning check-in */}
               <div style={s({ background: checkinDone ? '#e8f5e0' : isMorning ? '#fff4e0' : 'white', border: `1px solid ${checkinDone ? '#97C459' : isMorning ? '#f5d58a' : '#e4e0d8'}`, borderRadius: 14, padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' })}>
                 <div>
                   <div style={s({ fontSize: 13, fontWeight: 700, color: checkinDone ? '#27500A' : '#1a1a18', marginBottom: 2 })}>🌅 Morning Check-in</div>
@@ -912,20 +842,14 @@ export default function Dashboard() {
                   </button>
                 )}
               </div>
-
-              {/* Midday check-in — Pro only */}
               {isPro ? (
                 <div style={s({ background: 'white', border: `1px solid ${isMidday ? '#f5d58a' : '#e4e0d8'}`, borderRadius: 14, padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' })}>
                   <div>
                     <div style={s({ fontSize: 13, fontWeight: 700, color: '#1a1a18', marginBottom: 2 })}>☀️ Mid-day Check-in</div>
-                    <div style={s({ fontSize: 11, color: '#7a7a72' })}>
-                      {isMidday ? 'Available now — how\'s your day?' : 'Available 12PM–3PM'}
-                    </div>
+                    <div style={s({ fontSize: 11, color: '#7a7a72' })}>{isMidday ? "Available now — how's your day?" : 'Available 12PM–3PM'}</div>
                   </div>
                   {isMidday && (
-                    <button onClick={() => router.push('/checkin?type=midday')} style={s({ padding: '8px 14px', background: '#4a7c2f', color: 'white', border: 'none', borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif", flexShrink: 0 })}>
-                      Start →
-                    </button>
+                    <button onClick={() => router.push('/checkin?type=midday')} style={s({ padding: '8px 14px', background: '#4a7c2f', color: 'white', border: 'none', borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif", flexShrink: 0 })}>Start →</button>
                   )}
                 </div>
               ) : (
@@ -934,25 +858,17 @@ export default function Dashboard() {
                     <div style={s({ fontSize: 13, fontWeight: 700, color: '#1a1a18', marginBottom: 2 })}>☀️ Mid-day Check-in</div>
                     <div style={s({ fontSize: 11, color: '#7a7a72' })}>✦ Pro feature</div>
                   </div>
-                  <button onClick={() => router.push('/upgrade')} style={s({ padding: '8px 14px', background: '#e8f5e0', color: '#4a7c2f', border: 'none', borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif", flexShrink: 0 })}>
-                    Unlock →
-                  </button>
+                  <button onClick={() => router.push('/upgrade')} style={s({ padding: '8px 14px', background: '#e8f5e0', color: '#4a7c2f', border: 'none', borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif", flexShrink: 0 })}>Unlock →</button>
                 </div>
               )}
-
-              {/* Bedtime check-in — Pro only */}
               {isPro ? (
                 <div style={s({ background: 'white', border: `1px solid ${isBedtime ? '#b085eb' : '#e4e0d8'}`, borderRadius: 14, padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' })}>
                   <div>
                     <div style={s({ fontSize: 13, fontWeight: 700, color: '#1a1a18', marginBottom: 2 })}>🌙 Bedtime Check-in</div>
-                    <div style={s({ fontSize: 11, color: '#7a7a72' })}>
-                      {isBedtime ? 'Available now — reflect on today' : 'Available 8PM–12AM'}
-                    </div>
+                    <div style={s({ fontSize: 11, color: '#7a7a72' })}>{isBedtime ? 'Available now — reflect on today' : 'Available 8PM–12AM'}</div>
                   </div>
                   {isBedtime && (
-                    <button onClick={() => router.push('/checkin?type=bedtime')} style={s({ padding: '8px 14px', background: '#4a7c2f', color: 'white', border: 'none', borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif", flexShrink: 0 })}>
-                      Start →
-                    </button>
+                    <button onClick={() => router.push('/checkin?type=bedtime')} style={s({ padding: '8px 14px', background: '#4a7c2f', color: 'white', border: 'none', borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif", flexShrink: 0 })}>Start →</button>
                   )}
                 </div>
               ) : (
@@ -961,9 +877,7 @@ export default function Dashboard() {
                     <div style={s({ fontSize: 13, fontWeight: 700, color: '#1a1a18', marginBottom: 2 })}>🌙 Bedtime Check-in</div>
                     <div style={s({ fontSize: 11, color: '#7a7a72' })}>✦ Pro feature</div>
                   </div>
-                  <button onClick={() => router.push('/upgrade')} style={s({ padding: '8px 14px', background: '#e8f5e0', color: '#4a7c2f', border: 'none', borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif", flexShrink: 0 })}>
-                    Unlock →
-                  </button>
+                  <button onClick={() => router.push('/upgrade')} style={s({ padding: '8px 14px', background: '#e8f5e0', color: '#4a7c2f', border: 'none', borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif", flexShrink: 0 })}>Unlock →</button>
                 </div>
               )}
             </div>
@@ -974,7 +888,6 @@ export default function Dashboard() {
       {/* Water */}
       <div style={s({ margin: '16px 22px 0' })}>
         <div style={s({ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: '#7a7a72', textTransform: 'uppercase', marginBottom: 10 })}>Water intake</div>
-
         {profileLoaded && showWeightPrompt && (
           <div style={s({ background: '#e8f5e0', border: '1px solid #97C459', borderRadius: 14, padding: 16, marginBottom: 10 })}>
             <div style={s({ fontSize: 13, fontWeight: 700, color: '#27500A', marginBottom: 4 })}>Personalise your water goal 💧</div>
@@ -987,15 +900,9 @@ export default function Dashboard() {
             </div>
             <div style={s({ display: 'flex', gap: 8 })}>
               <input
-                type="number"
-                placeholder={weightUnit === 'kg' ? 'e.g. 70' : 'e.g. 154'}
-                min="1"
-                max="300"
-                value={weightInput}
-                onChange={e => {
-                  const val = e.target.value
-                  if (val === '' || (parseFloat(val) > 0 && parseFloat(val) <= 300)) setWeightInput(val)
-                }}
+                type="number" placeholder={weightUnit === 'kg' ? 'e.g. 70' : 'e.g. 154'}
+                min="1" max="300" value={weightInput}
+                onChange={e => { const val = e.target.value; if (val === '' || (parseFloat(val) > 0 && parseFloat(val) <= 300)) setWeightInput(val) }}
                 onKeyDown={e => e.key === 'Enter' && saveWeight()}
                 style={s({ flex: 1, padding: '10px 12px', border: '1.5px solid #97C459', borderRadius: 8, fontSize: 14, color: '#1a1a18', background: 'white', outline: 'none', fontFamily: "'DM Sans', Arial, sans-serif" })}
               />
@@ -1011,7 +918,6 @@ export default function Dashboard() {
             )}
           </div>
         )}
-
         <div style={s({ background: 'white', borderRadius: 14, border: '1px solid #e4e0d8', padding: 16 })}>
           <div style={s({ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 })}>
             <div>
@@ -1019,9 +925,7 @@ export default function Dashboard() {
                 Goal: {waterGoal.litres}L
                 {weightKg && <span style={s({ fontSize: 11, color: '#7a7a72', fontWeight: 400 })}> · {weightKg}kg{lbsDisplay ? ` / ${lbsDisplay}lbs` : ''}</span>}
               </div>
-              <div style={s({ fontSize: 11, color: '#7a7a72', marginTop: 2 })}>
-                Each 💧 = 250ml · {waterGoal.glasses} glasses to reach your goal
-              </div>
+              <div style={s({ fontSize: 11, color: '#7a7a72', marginTop: 2 })}>Each 💧 = 250ml · {waterGoal.glasses} glasses to reach your goal</div>
             </div>
             <div style={s({ display: 'flex', alignItems: 'center', gap: 6 })}>
               <div style={s({ background: '#e8f5e0', color: '#4a7c2f', borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 600 })}>{water} / {waterGoal.glasses}</div>
@@ -1047,7 +951,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Habits */}
+      {/* ── HABITS SECTION — updated with bounce animation ── */}
       <div style={s({ margin: '16px 22px 0' })}>
         <div style={s({ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 })}>
           <div style={s({ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: '#7a7a72', textTransform: 'uppercase' })}>Daily habits</div>
@@ -1060,38 +964,75 @@ export default function Dashboard() {
         <div style={s({ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 })}>
           {habits.map((h, i) => {
             const isHighlighted = rec && rec.highlight.includes(i)
+            const isChecked = checkedHabits[i]
             return (
               <div key={i} onClick={() => {
                 const updated = { ...checkedHabits, [i]: !checkedHabits[i] }
                 setCheckedHabits(updated)
                 saveData({ habits: updated })
+                // Trigger bounce animation
+                setBouncingHabit(i)
+                setTimeout(() => setBouncingHabit(null), 400)
               }} style={s({
-                background: checkedHabits[i] ? '#e8f5e0' : isHighlighted ? rec!.bg : 'white',
-                border: `${isHighlighted && !checkedHabits[i] ? '2px' : '1.5px'} solid ${checkedHabits[i] ? '#7db84a' : isHighlighted ? rec!.border : '#e4e0d8'}`,
+                background: isChecked ? '#e8f5e0' : isHighlighted ? rec!.bg : 'white',
+                border: `${isHighlighted && !isChecked ? '2px' : '1.5px'} solid ${isChecked ? '#7db84a' : isHighlighted ? rec!.border : '#e4e0d8'}`,
                 borderRadius: 14, padding: 14, cursor: 'pointer', position: 'relative',
+                // Bounce on check, compress on uncheck
+                animation: bouncingHabit === i
+                  ? (isChecked
+                    ? 'habitUncheck 0.2s ease forwards'
+                    : 'habitBounce 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards')
+                  : 'none',
               })}>
-                {isHighlighted && !checkedHabits[i] && (
+
+                {/* Recommendation dot */}
+                {isHighlighted && !isChecked && (
                   <div style={s({ position: 'absolute', top: 8, right: 8, width: 8, height: 8, borderRadius: '50%', background: rec!.dot })}/>
                 )}
-                <div style={{ fontSize: 20, marginBottom: 6 }}>{h.icon}</div>
-                <div style={s({ fontSize: 13, fontWeight: 600, color: checkedHabits[i] ? '#4a7c2f' : isHighlighted ? rec!.text : '#3d3d3a' })}>{h.label}</div>
+
+                {/* Green checkmark circle — top right when checked */}
+                {isChecked && (
+                  <div style={s({
+                    position: 'absolute', top: 8, right: 8,
+                    width: 18, height: 18, borderRadius: '50%',
+                    background: '#4a7c2f',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  })}>
+                    <svg
+                      width="10" height="8" viewBox="0 0 10 8" fill="none"
+                      style={{ animation: 'checkmarkIn 0.25s cubic-bezier(0.34,1.56,0.64,1) forwards' }}
+                    >
+                      <path d="M1 4l2.8 2.8L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                )}
+
+                {/* Habit icon — pops on check */}
+                <div style={{
+                  fontSize: 20, marginBottom: 6,
+                  animation: bouncingHabit === i && !isChecked
+                    ? 'iconPop 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards'
+                    : 'none',
+                }}>
+                  {h.icon}
+                </div>
+
+                <div style={s({ fontSize: 13, fontWeight: 600, color: isChecked ? '#4a7c2f' : isHighlighted ? rec!.text : '#3d3d3a' })}>{h.label}</div>
                 <div style={s({ fontSize: 11, color: '#7a7a72', marginTop: 2 })}>{h.sub}</div>
               </div>
             )
           })}
         </div>
       </div>
+      {/* ── END HABITS SECTION ── */}
 
-      {/* Motivational Quote Banner */}
       <QuoteBanner />
 
       {/* Bottom nav */}
       <div style={s({
         position: 'fixed', bottom: 0, left: 0, right: 0,
-        background: 'white',
-        borderTop: '1px solid #e4e0d8',
-        display: 'flex',
-        paddingTop: 10,
+        background: 'white', borderTop: '1px solid #e4e0d8',
+        display: 'flex', paddingTop: 10,
         paddingBottom: 'calc(env(safe-area-inset-bottom) + 10px)',
         zIndex: 100,
       })}>
