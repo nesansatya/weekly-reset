@@ -46,13 +46,55 @@ const days = [
   ]},
 ]
 
+const habitIcons = {
+  sun: (color: string) => (
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+      <circle cx="11" cy="11" r="4" stroke={color} strokeWidth="1.6"/>
+      <path d="M11 2V4M11 18V20M2 11H4M18 11H20M4.93 4.93L6.34 6.34M15.66 15.66L17.07 17.07M17.07 4.93L15.66 6.34M6.34 15.66L4.93 17.07" stroke={color} strokeWidth="1.5" strokeLinecap="round"/>
+    </svg>
+  ),
+  drop: (color: string) => (
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+      <path d="M11 3C11 3 5 9.5 5 13.5C5 16.81 7.69 19.5 11 19.5C14.31 19.5 17 16.81 17 13.5C17 9.5 11 3 11 3Z" stroke={color} strokeWidth="1.6" strokeLinejoin="round"/>
+      <path d="M8 14.5C8.5 16 9.5 17 11 17" stroke={color} strokeWidth="1.4" strokeLinecap="round" opacity="0.5"/>
+    </svg>
+  ),
+  steps: (color: string) => (
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+      <path d="M7 18C7 18 6 14 8 12C9.5 10.5 11 11 12 10C13.5 8.5 13 6 13 6" stroke={color} strokeWidth="1.6" strokeLinecap="round"/>
+      <path d="M13 18C13 18 14 14 12 12C10.5 10.5 9 11 8 10C6.5 8.5 7 6 7 6" stroke={color} strokeWidth="1.6" strokeLinecap="round" opacity="0.45"/>
+      <circle cx="13" cy="4.5" r="1.5" fill={color}/>
+      <circle cx="7" cy="4.5" r="1.5" fill={color} opacity="0.45"/>
+    </svg>
+  ),
+  fork: (color: string) => (
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+      <path d="M8 3V8C8 9.1 8.9 10 10 10V19" stroke={color} strokeWidth="1.6" strokeLinecap="round"/>
+      <path d="M6 3V6M10 3V6" stroke={color} strokeWidth="1.6" strokeLinecap="round"/>
+      <path d="M14 3C14 3 16 5 16 8C16 9.1 15.1 10 14 10V19" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
+  phoneOff: (color: string) => (
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+      <rect x="6" y="2" width="10" height="16" rx="2" stroke={color} strokeWidth="1.6"/>
+      <path d="M9 18.5H13" stroke={color} strokeWidth="1.6" strokeLinecap="round"/>
+      <path d="M4 4L18 18" stroke={color} strokeWidth="1.6" strokeLinecap="round"/>
+    </svg>
+  ),
+  moon: (color: string) => (
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+      <path d="M19 12.5C17.5 16.09 13.97 18.5 10 18.5C5.86 18.5 2.5 15.14 2.5 11C2.5 7.03 4.91 3.5 8.5 2C7.5 3.5 7 5.5 7 7C7 11.97 11.03 16 16 16C17.5 16 18.86 15.62 20 14.93C19.7 14.14 19.38 13.3 19 12.5Z" stroke={color} strokeWidth="1.6" strokeLinejoin="round"/>
+    </svg>
+  ),
+}
+
 const habits = [
-  { icon: '☀️', label: 'Morning sunlight', sub: '10–15 min outside' },
-  { icon: '💧', label: '500ml on waking', sub: 'Before anything else' },
-  { icon: '🚶', label: 'Steps goal', sub: 'Check Galaxy Watch' },
-  { icon: '🥗', label: '3 structured meals', sub: 'No constant snacking' },
-  { icon: '📵', label: 'Phone off 1hr before bed', sub: 'Protect your sleep' },
-  { icon: '🌙', label: 'Sleep before midnight', sub: '7–8 hours target' },
+  { iconKey: 'sun' as const, label: 'Morning sunlight', sub: '10–15 min outside' },
+  { iconKey: 'drop' as const, label: '500ml on waking', sub: 'Before anything else' },
+  { iconKey: 'steps' as const, label: 'Steps goal', sub: 'Check Galaxy Watch' },
+  { iconKey: 'fork' as const, label: '3 structured meals', sub: 'No constant snacking' },
+  { iconKey: 'phoneOff' as const, label: 'Phone off 1hr before bed', sub: 'Protect your sleep' },
+  { iconKey: 'moon' as const, label: 'Sleep before midnight', sub: '7–8 hours target' },
 ]
 
 const moods = [
@@ -1141,12 +1183,14 @@ export default function Dashboard() {
                   </div>
                 )}
                 <div style={{
-                  fontSize: 20, marginBottom: 6,
+                  marginBottom: 8,
                   animation: bouncingHabit === i && !isChecked
                     ? 'iconPop 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards'
                     : 'none',
                 }}>
-                  {h.icon}
+                  {habitIcons[h.iconKey](
+                    isChecked ? '#4a7c2f' : isHighlighted ? rec!.dot : '#b4b2a9'
+                  )}
                 </div>
                 <div style={s({ fontSize: 13, fontWeight: 600, color: isChecked ? '#4a7c2f' : isHighlighted ? rec!.text : '#3d3d3a' })}>{h.label}</div>
                 <div style={s({ fontSize: 11, color: '#7a7a72', marginTop: 2 })}>{h.sub}</div>
