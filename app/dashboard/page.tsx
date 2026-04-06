@@ -993,6 +993,28 @@ export default function Dashboard() {
               })}>💧</div>
             ))}
           </div>
+
+          {/* ── Hydration goal reached banner ── */}
+          <div style={s({
+            marginTop: 12,
+            background: '#1a1a18',
+            borderRadius: 12,
+            padding: '12px 14px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            opacity: water >= waterGoal.glasses ? 1 : 0,
+            transform: water >= waterGoal.glasses ? 'translateY(0)' : 'translateY(6px)',
+            transition: 'opacity 0.35s ease, transform 0.35s ease',
+            pointerEvents: 'none',
+          })}>
+            <span style={{ fontSize: 22 }}>💧</span>
+            <div>
+              <div style={s({ fontSize: 13, fontWeight: 600, color: '#a8c48a' })}>Hydration goal reached!</div>
+              <div style={s({ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 1 })}>Your body thanks you 🌿</div>
+            </div>
+          </div>
+
         </div>
       </div>
 
