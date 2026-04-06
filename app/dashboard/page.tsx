@@ -103,6 +103,54 @@ function getRecommendation(mood: number, energy: number) {
   }
 }
 
+// ── FIX 2: Single smart daily insight — worst profile metric priority ──────
+// Priority: Sleep → Stress → Fitness → Water → Work
+function getDailyInsight(
+  sleepQuality: string,
+  stressLevel: string,
+  fitnessLevel: string,
+  waterIntake: string,
+  workSchedule: string,
+): { title: string; message: string; bg: string; border: string; titleColor: string; bodyColor: string } | null {
+  if (sleepQuality === 'Very poor' || sleepQuality === 'Could be better') return {
+    title: '😴 Sleep is your #1 priority today',
+    message: 'Based on your profile, improving sleep will have the biggest impact on your energy and mood. Protect tonight.',
+    bg: '#e0eeff', border: '#85B7EB', titleColor: '#0C447C', bodyColor: '#185FA5',
+  }
+  if (sleepQuality === 'Decent' || sleepQuality === 'Pretty good') {
+    // Sleep is fine — check stress next
+  } else if (sleepQuality) {
+    // Great sleeper — skip
+  }
+  if (stressLevel === 'Very high' || stressLevel === 'High') return {
+    title: '🧘 High stress — take it easy today',
+    message: 'Recovery and light movement will serve you better than intense workouts right now. Be kind to yourself.',
+    bg: '#f0e8ff', border: '#b085eb', titleColor: '#4a0c7c', bodyColor: '#6a1fa5',
+  }
+  if (fitnessLevel === 'Complete beginner') return {
+    title: '🌱 Beginner tip for today',
+    message: "Completing 50% of today's workout is a huge win. Don't worry about perfection — just start and keep moving.",
+    bg: '#fff4e0', border: '#f5d58a', titleColor: '#633806', bodyColor: '#BA7517',
+  }
+  if (waterIntake === 'Less than 1L' || waterIntake === '1–1.5L') return {
+    title: '💧 Your water intake needs attention',
+    message: 'Your profile shows low daily water intake. Hit your water goal today — it will improve your energy within hours.',
+    bg: '#e0f4ff', border: '#85d4eb', titleColor: '#0c4a5c', bodyColor: '#185a7c',
+  }
+  if (workSchedule === 'Desk job — mostly sitting') return {
+    title: '💼 Desk job reminder',
+    message: 'You sit most of the day — make your steps goal and morning sunlight non-negotiable today.',
+    bg: '#fff4e0', border: '#f5d58a', titleColor: '#633806', bodyColor: '#BA7517',
+  }
+  if (fitnessLevel === 'Intermediate' || fitnessLevel === 'Pretty active') return {
+    title: '🔥 You\'re experienced — push harder today',
+    message: 'Your fitness base is solid. Add an extra set, push the pace, or add a bonus workout today.',
+    bg: '#1a1a18', border: '#7db84a', titleColor: '#a8c48a', bodyColor: 'rgba(255,255,255,0.6)',
+  }
+  return null
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 const quotes = [
   "Consistency beats intensity. You don't need a perfect plan — you need a routine you can follow for years.",
   "Small daily improvements are the key to staggering long-term results.",
@@ -136,20 +184,17 @@ const quotes = [
   "Take care of your body. It's the only place you have to live.",
 ]
 
+// ── FIX 3: Static daily quote — one per day, no rotation ─────────────────
+function getDailyQuote(): string {
+  const dayOfYear = Math.floor(
+    (Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000
+  )
+  return quotes[dayOfYear % quotes.length]
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 function QuoteBanner() {
-  const [current, setCurrent] = React.useState(() => {
-    const day = new Date().getDay()
-    const week = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000))
-    return (day + week) % quotes.length
-  })
-
-  React.useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrent(c => (c + 1) % quotes.length)
-    }, 5000)
-    return () => clearInterval(timer)
-  }, [])
-
+  const quote = getDailyQuote()
   return (
     <div style={{
       margin: '16px 22px 20px',
@@ -168,20 +213,12 @@ function QuoteBanner() {
         fontStyle: 'italic', fontWeight: 700, fontSize: 15,
         color: '#633806', lineHeight: 1.6, marginBottom: 12,
       }}>
-        {quotes[current]}
+        {quote}
       </div>
       <div style={{
         fontSize: 11, fontWeight: 600, color: '#ba7517',
-        fontFamily: "'DM Sans', Arial, sans-serif", marginBottom: 12,
-      }}>— Your Weekly Reset</div>
-      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-        <div style={{ width: 16, height: 5, borderRadius: 3, background: '#ba7517' }}/>
-        <div style={{ width: 5, height: 5, borderRadius: 3, background: '#f5d58a' }}/>
-        <div style={{ width: 5, height: 5, borderRadius: 3, background: '#f5d58a' }}/>
-        <div style={{ fontSize: 10, color: '#ba7517', fontWeight: 600, fontFamily: "'DM Sans', Arial, sans-serif", marginLeft: 2 }}>
-          {current + 1} / {quotes.length}
-        </div>
-      </div>
+        fontFamily: "'DM Sans', Arial, sans-serif",
+      }}>— Your Weekly Reset · Today's quote</div>
     </div>
   )
 }
@@ -332,9 +369,7 @@ export default function Dashboard() {
   const [weightUnit, setWeightUnit] = useState<'kg' | 'lbs'>('kg')
   const [isOffline, setIsOffline] = useState(false)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  // ── NEW: confetti canvas ref ─────────────────────────────
   const confettiRef = useRef<HTMLCanvasElement>(null)
-  // ────────────────────────────────────────────────────────
   const [fitnessLevel, setFitnessLevel] = useState('')
   const [sleepQuality, setSleepQuality] = useState('')
   const [healthChallenge, setHealthChallenge] = useState('')
@@ -344,12 +379,8 @@ export default function Dashboard() {
   const [isPro, setIsPro] = useState(false)
   const [checkinDone, setCheckinDone] = useState(false)
   const [showStreakReward, setShowStreakReward] = useState(false)
-
-  // ── NEW: habit bounce state ──────────────────────────────
   const [bouncingHabit, setBouncingHabit] = useState<number | null>(null)
-  // ── NEW: water glass tap animation state ─────────────────
   const [tappedGlass, setTappedGlass] = useState<number | null>(null)
-  // ────────────────────────────────────────────────────────
 
   useEffect(() => {
     function handleOffline() { setIsOffline(true) }
@@ -442,7 +473,6 @@ export default function Dashboard() {
     init()
   }, [])
 
-  // ── NEW: fire confetti on streak milestone ───────────────
   function fireConfetti(streakCount: number) {
     if (!confettiRef.current) return
     const myConfetti = confetti.create(confettiRef.current, { resize: true, useWorker: false })
@@ -461,7 +491,6 @@ export default function Dashboard() {
       scalar: 0.85,
     })
   }
-  // ────────────────────────────────────────────────────────
 
   async function saveWeight() {
     let kg = parseFloat(weightInput)
@@ -536,6 +565,10 @@ export default function Dashboard() {
   const waterGoal = weightKg ? calcWaterGoal(weightKg) : { litres: 2.5, glasses: 10 }
   const lbsDisplay = weightKg ? Math.round(weightKg * 2.205) : null
 
+  // ── FIX 2: Compute the single daily insight ───────────────────────────────
+  const dailyInsight = getDailyInsight(sleepQuality, stressLevel, fitnessLevel, waterIntake, workSchedule)
+  // ─────────────────────────────────────────────────────────────────────────
+
   const s = (obj: React.CSSProperties) => obj
   const BOTTOM_NAV_HEIGHT = 70
 
@@ -543,10 +576,10 @@ export default function Dashboard() {
     <main style={s({ minHeight: '100dvh', background: '#faf8f4', fontFamily: "'DM Sans', Arial, sans-serif" })}>
 
       {/* Header shimmer */}
-      <div style={s({ padding: '16px 22px 20px', paddingTop: 'calc(env(safe-area-inset-top) + 16px)', background: '#d4cfc4' })}>
-        <div className="shimmer" style={s({ width: 80, height: 12, marginBottom: 10 })} />
-        <div className="shimmer" style={s({ width: 150, height: 28, borderRadius: 8, marginBottom: 12 })} />
-        <div className="shimmer" style={s({ width: 110, height: 22, borderRadius: 20 })} />
+      <div style={s({ padding: '16px 22px 20px', paddingTop: 'calc(env(safe-area-inset-top) + 16px)', background: '#1a1a18' })}>
+        <div className="shimmer-dark" style={s({ width: 80, height: 12, marginBottom: 10 })} />
+        <div className="shimmer-dark" style={s({ width: 150, height: 28, borderRadius: 8, marginBottom: 12 })} />
+        <div className="shimmer-dark" style={s({ width: 110, height: 22, borderRadius: 20 })} />
       </div>
 
       {/* Hero card shimmer */}
@@ -579,7 +612,6 @@ export default function Dashboard() {
             <div className="shimmer" style={s({ width: 80, height: 10 })} />
             <div className="shimmer" style={s({ width: 48, height: 22, borderRadius: 20 })} />
           </div>
-          {/* Bottle shimmer */}
           <div style={s({ display: 'flex', justifyContent: 'center', margin: '0 0 14px' })}>
             <div className="shimmer" style={s({ width: 72, height: 110, borderRadius: 14 })} />
           </div>
@@ -628,38 +660,39 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Header */}
+      {/* ── FIX 1: Header — #1a1a18 dark, intentional contrast ── */}
       <div style={s({
-        padding: '16px 22px 0',
+        padding: '16px 22px 20px',
         paddingTop: isOffline ? '16px' : 'calc(env(safe-area-inset-top) + 16px)',
-        background: '#d4cfc4',
+        background: '#1a1a18',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'flex-start',
       })}>
         <div>
-          <div style={s({ fontSize: 12, color: '#7a7a72', fontWeight: 500 })}>{getGreeting()}</div>
-          <div style={s({ fontSize: 24, fontWeight: 700, color: '#1a1a18', fontFamily: "'DM Serif Display', Georgia, serif", marginTop: 2 })}>
+          <div style={s({ fontSize: 12, color: 'rgba(255,255,255,0.45)', fontWeight: 500 })}>{getGreeting()}</div>
+          <div style={s({ fontSize: 24, fontWeight: 700, color: 'white', fontFamily: "'DM Serif Display', Georgia, serif", marginTop: 2 })}>
             {userName} 👋
           </div>
           <div style={s({ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 })}>
             {streak > 0 && (
-              <div style={s({ display: 'inline-flex', alignItems: 'center', gap: 5, background: '#fff4e0', border: '1px solid #f5d58a', borderRadius: 30, padding: '4px 12px', fontSize: 12, fontWeight: 600, color: '#8a6200' })}>
+              <div style={s({ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'rgba(196,163,90,0.15)', border: '1px solid rgba(196,163,90,0.35)', borderRadius: 30, padding: '4px 12px', fontSize: 12, fontWeight: 600, color: '#f0d080' })}>
                 🔥 {streak} day streak
               </div>
             )}
-            {saving && <div style={s({ fontSize: 11, color: '#7a7a72' })}>Saving...</div>}
+            {saving && <div style={s({ fontSize: 11, color: 'rgba(255,255,255,0.35)' })}>Saving...</div>}
           </div>
         </div>
         <div style={s({ display: 'flex', gap: 8, alignItems: 'center', marginTop: 8 })}>
-          <button onClick={() => router.push('/checkin')} style={s({ display: 'flex', alignItems: 'center', gap: 6, background: '#fff4e0', border: '1px solid #f5d58a', borderRadius: 20, padding: '6px 12px', cursor: 'pointer', fontSize: 11, fontWeight: 700, color: '#8a6200', fontFamily: "'DM Sans', Arial, sans-serif" })}>
+          <button onClick={() => router.push('/checkin')} style={s({ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(196,163,90,0.15)', border: '1px solid rgba(196,163,90,0.35)', borderRadius: 20, padding: '6px 12px', cursor: 'pointer', fontSize: 11, fontWeight: 700, color: '#f0d080', fontFamily: "'DM Sans', Arial, sans-serif" })}>
             🌅 Check in
           </button>
-          <button onClick={() => router.push('/dashboard/profile')} style={s({ width: 42, height: 42, borderRadius: '50%', background: '#1a1a18', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 })}>
+          <button onClick={() => router.push('/dashboard/profile')} style={s({ width: 42, height: 42, borderRadius: '50%', background: 'rgba(125,184,74,0.2)', border: '1px solid rgba(125,184,74,0.35)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 })}>
             🌿
           </button>
         </div>
       </div>
+      {/* ── END FIX 1 ── */}
 
       {/* Hero card */}
       <div style={s({ margin: '16px 22px 0', background: '#1a1a18', borderRadius: 20, padding: 20, position: 'relative', overflow: 'hidden' })}>
@@ -702,17 +735,10 @@ export default function Dashboard() {
             position: 'relative', overflow: 'hidden',
             animation: 'modalIn 0.4s cubic-bezier(0.34,1.2,0.64,1) forwards',
           })}>
-            {/* Confetti canvas */}
             <canvas ref={confettiRef} style={s({ position: 'absolute', inset: 0, pointerEvents: 'none', borderRadius: 20, width: '100%', height: '100%' })}/>
-
-            {/* Glow */}
             <div style={s({ position: 'absolute', width: 200, height: 200, borderRadius: '50%', background: '#c4a35a', opacity: 0.05, top: -80, right: -60, pointerEvents: 'none' })}/>
-
-            {/* Close */}
             <button onClick={() => { setShowStreakReward(false); localStorage.setItem('wr_streak_reward_dismissed','true') }}
               style={s({ position: 'absolute', top: 14, right: 16, background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: 22, cursor: 'pointer', lineHeight: 1 })}>×</button>
-
-            {/* Flame + number */}
             <div style={s({ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 })}>
               <span style={{ fontSize: 36, display: 'block', animation: 'flamePulse 1.2s ease-in-out infinite' }}>🔥</span>
               <div>
@@ -720,8 +746,6 @@ export default function Dashboard() {
                 <div style={s({ fontSize: 14, color: 'rgba(255,255,255,0.5)', fontWeight: 600 })}>day streak</div>
               </div>
             </div>
-
-            {/* Title */}
             <div style={s({ fontSize: 16, fontWeight: 700, color: 'white', marginBottom: 6 })}>
               {streak >= 90 ? "90 days. You've changed your life." :
                streak >= 60 ? "60 days. You're in rare company." :
@@ -729,13 +753,9 @@ export default function Dashboard() {
                streak >= 14 ? "Two weeks straight. That's discipline." :
                "One week down. You're just getting started."}
             </div>
-
-            {/* Message */}
             <div style={s({ fontSize: 13, color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, marginBottom: 16 })}>
               You've shown up <span style={{ color: '#f0d080', fontWeight: 700 }}>{streak} days</span> in a row. Unlock Pro at <span style={{ color: '#f0d080', fontWeight: 700 }}>50% off</span> — you've earned it.
             </div>
-
-            {/* Milestone dots */}
             <div style={s({ display: 'flex', gap: 6, marginBottom: 18 })}>
               {[7,14,30,60,90].map(ms => (
                 <div key={ms} style={s({
@@ -748,8 +768,6 @@ export default function Dashboard() {
                 </div>
               ))}
             </div>
-
-            {/* Pricing */}
             <div style={s({ background: 'rgba(196,163,90,0.1)', border: '1px solid rgba(196,163,90,0.2)', borderRadius: 10, padding: '10px 14px', marginBottom: 16 })}>
               <div style={s({ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 })}>
                 <div style={s({ fontSize: 12, color: 'rgba(255,255,255,0.5)' })}>Monthly</div>
@@ -767,8 +785,6 @@ export default function Dashboard() {
               </div>
               <div style={s({ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginTop: 8 })}>50% off for 12 months, then full price from Year 2.</div>
             </div>
-
-            {/* CTAs */}
             <div style={s({ display: 'flex', gap: 8 })}>
               <button onClick={() => router.push('/upgrade?coupon=dTaJGxYd&source=streak')}
                 style={s({ flex: 1, padding: '12px 16px', background: '#c4a35a', color: '#1a1a18', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif" })}>
@@ -783,80 +799,14 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Personalised Insight Banner */}
-      {(() => {
-        const banners = []
-        if (sleepQuality === 'Very poor' || sleepQuality === 'Could be better') banners.push(
-          <div key="sleep" style={s({ margin: '12px 22px 0', background: '#e0eeff', border: '1px solid #85B7EB', borderRadius: 14, padding: '12px 16px' })}>
-            <div style={s({ fontSize: 13, fontWeight: 700, color: '#0C447C', marginBottom: 2 })}>😴 Sleep is your #1 priority</div>
-            <div style={s({ fontSize: 12, color: '#185FA5', lineHeight: 1.5 })}>Based on your profile, improving sleep will have the biggest impact on your energy and mood.</div>
-          </div>
-        )
-        if (sleepQuality === 'Decent' || sleepQuality === 'Pretty good') banners.push(
-          <div key="sleep" style={s({ margin: '12px 22px 0', background: '#e8f5e0', border: '1px solid #97C459', borderRadius: 14, padding: '12px 16px' })}>
-            <div style={s({ fontSize: 13, fontWeight: 700, color: '#27500A', marginBottom: 2 })}>😴 Great sleep habits!</div>
-            <div style={s({ fontSize: 12, color: '#3B6D11', lineHeight: 1.5 })}>You're sleeping well — keep protecting that routine. Good sleep is the foundation of everything else.</div>
-          </div>
-        )
-        if (stressLevel === 'Very high' || stressLevel === 'High') banners.push(
-          <div key="stress" style={s({ margin: '12px 22px 0', background: '#f0e8ff', border: '1px solid #b085eb', borderRadius: 14, padding: '12px 16px' })}>
-            <div style={s({ fontSize: 13, fontWeight: 700, color: '#4a0c7c', marginBottom: 2 })}>🧘 High stress detected</div>
-            <div style={s({ fontSize: 12, color: '#6a1fa5', lineHeight: 1.5 })}>Take it easy today. Recovery and light movement will serve you better than intense workouts right now.</div>
-          </div>
-        )
-        if (stressLevel === 'Moderate' || stressLevel === 'Low') banners.push(
-          <div key="stress" style={s({ margin: '12px 22px 0', background: '#e8f5e0', border: '1px solid #97C459', borderRadius: 14, padding: '12px 16px' })}>
-            <div style={s({ fontSize: 13, fontWeight: 700, color: '#27500A', marginBottom: 2 })}>🧘 Great headspace today!</div>
-            <div style={s({ fontSize: 12, color: '#3B6D11', lineHeight: 1.5 })}>Your stress is under control — this is the perfect mental state to build strong habits. Make it count!</div>
-          </div>
-        )
-        if (workSchedule === 'Desk job — mostly sitting') banners.push(
-          <div key="work" style={s({ margin: '12px 22px 0', background: '#fff4e0', border: '1px solid #f5d58a', borderRadius: 14, padding: '12px 16px' })}>
-            <div style={s({ fontSize: 13, fontWeight: 700, color: '#633806', marginBottom: 2 })}>💼 Desk job reminder</div>
-            <div style={s({ fontSize: 12, color: '#BA7517', lineHeight: 1.5 })}>You sit most of the day — make your steps goal and morning sunlight non-negotiable today.</div>
-          </div>
-        )
-        if (workSchedule === 'On my feet most of the day' || workSchedule === 'Physical/manual work') banners.push(
-          <div key="work" style={s({ margin: '12px 22px 0', background: '#e8f5e0', border: '1px solid #97C459', borderRadius: 14, padding: '12px 16px' })}>
-            <div style={s({ fontSize: 13, fontWeight: 700, color: '#27500A', marginBottom: 2 })}>💪 Active job advantage!</div>
-            <div style={s({ fontSize: 12, color: '#3B6D11', lineHeight: 1.5 })}>Your body is already moving at work — focus on recovery, sleep and nutrition to complement your active lifestyle.</div>
-          </div>
-        )
-        if (waterIntake === 'Less than 1L' || waterIntake === '1–1.5L') banners.push(
-          <div key="water" style={s({ margin: '12px 22px 0', background: '#e0f4ff', border: '1px solid #85d4eb', borderRadius: 14, padding: '12px 16px' })}>
-            <div style={s({ fontSize: 13, fontWeight: 700, color: '#0c4a5c', marginBottom: 2 })}>💧 You need more water</div>
-            <div style={s({ fontSize: 12, color: '#185a7c', lineHeight: 1.5 })}>Your profile shows low daily water intake. Hit your water goal today — it will improve your energy within hours.</div>
-          </div>
-        )
-        if (waterIntake === '1.5–2L' || waterIntake === 'More than 2L') banners.push(
-          <div key="water" style={s({ margin: '12px 22px 0', background: '#e8f5e0', border: '1px solid #97C459', borderRadius: 14, padding: '12px 16px' })}>
-            <div style={s({ fontSize: 13, fontWeight: 700, color: '#27500A', marginBottom: 2 })}>💧 Great hydration habits!</div>
-            <div style={s({ fontSize: 12, color: '#3B6D11', lineHeight: 1.5 })}>You're already drinking well — keep it consistent and your energy levels will stay stable all day.</div>
-          </div>
-        )
-        if (fitnessLevel === 'Complete beginner') banners.push(
-          <div key="fitness" style={s({ margin: '12px 22px 0', background: '#fff4e0', border: '1px solid #f5d58a', borderRadius: 14, padding: '12px 16px' })}>
-            <div style={s({ fontSize: 13, fontWeight: 700, color: '#633806', marginBottom: 2 })}>🌱 Beginner tip</div>
-            <div style={s({ fontSize: 12, color: '#BA7517', lineHeight: 1.5 })}>Don't worry about doing everything perfectly. Completing 50% of today's workout is a huge win. Just start!</div>
-          </div>
-        )
-        if (fitnessLevel === 'Intermediate' || fitnessLevel === 'Pretty active') banners.push(
-          <div key="fitness" style={s({ margin: '12px 22px 0', background: '#1a1a18', border: '1px solid #7db84a', borderRadius: 14, padding: '12px 16px' })}>
-            <div style={s({ fontSize: 13, fontWeight: 700, color: '#a8c48a', marginBottom: 2 })}>🔥 You're experienced — push harder!</div>
-            <div style={s({ fontSize: 12, color: 'rgba(255,255,255,0.6)', lineHeight: 1.5 })}>Your fitness base is solid. Add an extra set, push the pace, or add a bonus workout today.</div>
-          </div>
-        )
-        const visibleBanners = isPro ? banners : banners.slice(0, 1)
-        return <>{visibleBanners}</>
-      })()}
-
-      {!isPro && (
-        <div style={s({ margin: '12px 22px 0', background: 'linear-gradient(135deg, #e8f5e0, #f0f7e8)', border: '1px solid #97C459', borderRadius: 14, padding: '12px 16px' })}>
-          <div style={s({ fontSize: 13, fontWeight: 700, color: '#27500A', marginBottom: 2 })}>✦ Unlock all personalised insights</div>
-          <div style={s({ fontSize: 12, color: '#3B6D11', marginBottom: 8, lineHeight: 1.5 })}>Pro users see all 5 personalised banners tailored to their profile every day.</div>
-          <button onClick={() => router.push('/upgrade')} style={s({ padding: '7px 14px', background: '#4a7c2f', color: 'white', border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif" })}>Upgrade to Pro →</button>
+      {/* ── FIX 2: Single smart daily insight banner ── */}
+      {dailyInsight && (
+        <div style={s({ margin: '12px 22px 0', background: dailyInsight.bg, border: `1px solid ${dailyInsight.border}`, borderRadius: 14, padding: '12px 16px' })}>
+          <div style={s({ fontSize: 13, fontWeight: 700, color: dailyInsight.titleColor, marginBottom: 2 })}>{dailyInsight.title}</div>
+          <div style={s({ fontSize: 12, color: dailyInsight.bodyColor, lineHeight: 1.5 })}>{dailyInsight.message}</div>
         </div>
       )}
+      {/* ── END FIX 2 ── */}
 
       {/* Day selector */}
       <div style={s({ display: 'flex', gap: 6, padding: '16px 22px 0', overflowX: 'auto', scrollbarWidth: 'none' })}>
@@ -890,9 +840,17 @@ export default function Dashboard() {
               </div>
             )}
           </div>
-          <button onClick={() => router.push('/dashboard/workout')} style={s({ fontSize: 11, fontWeight: 600, color: '#4a7c2f', background: '#e8f5e0', border: 'none', borderRadius: 20, padding: '4px 10px', cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif" })}>
-            ✦ Customise
-          </button>
+          {/* ── FIX 4: Customise button — locked for free users ── */}
+          {isPro ? (
+            <button onClick={() => router.push('/dashboard/workout')} style={s({ fontSize: 11, fontWeight: 600, color: '#4a7c2f', background: '#e8f5e0', border: 'none', borderRadius: 20, padding: '4px 10px', cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif" })}>
+              ✦ Customise
+            </button>
+          ) : (
+            <button onClick={() => router.push('/upgrade')} style={s({ fontSize: 11, fontWeight: 600, color: '#9a9a92', background: '#f5f2ec', border: '1px solid #e4e0d8', borderRadius: 20, padding: '4px 10px', cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif" })}>
+              🔒 Customise
+            </button>
+          )}
+          {/* ── END FIX 4 ── */}
         </div>
         {fitnessLevel && (
           <div style={s({
@@ -1048,35 +1006,34 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* ── Water bottle visual ── */}
+          {/* Water bottle visual */}
           <div style={s({ display: 'flex', justifyContent: 'center', margin: '14px 0' })}>
             <div style={s({ position: 'relative', width: 72 })}>
-              {/* Bottle neck */}
               <div style={s({ width: 32, height: 14, background: '#e4f0ff', borderRadius: '4px 4px 0 0', border: '1.5px solid #bdd6f5', borderBottom: 'none', margin: '0 auto' })}/>
-              {/* Bottle body */}
               <div style={s({ width: 72, height: 96, borderRadius: '8px 8px 14px 14px', border: '1.5px solid #bdd6f5', background: '#f0f8ff', overflow: 'hidden', position: 'relative' })}>
-                {/* Fill */}
                 <div style={s({
                   position: 'absolute', bottom: 0, left: 0, right: 0,
                   background: water >= waterGoal.glasses ? '#4a9de8' : '#60a5e8',
-                  height: `${Math.round((water / waterGoal.glasses) * 100)}%`,
+                  height: `${Math.max(18, Math.round((water / waterGoal.glasses) * 100))}%`,
                   transition: 'height 0.5s cubic-bezier(0.34,1.2,0.64,1)',
                   borderRadius: '0 0 12px 12px',
                 })}>
-                  {/* Wave on surface */}
                   <div style={s({
                     position: 'absolute', top: -4, left: '-10%', width: '120%', height: 8,
                     background: '#7bb8f0', borderRadius: '50%',
                     animation: 'waterWave 2s ease-in-out infinite',
                   })}/>
                 </div>
-                {/* Percentage */}
+                {/* ── FIX: percentage label positioned above fill when low ── */}
                 <div style={s({
-                  position: 'absolute', top: '50%', left: '50%',
-                  transform: 'translate(-50%,-50%)',
+                  position: 'absolute',
+                  bottom: `${Math.max(18, Math.round((water / waterGoal.glasses) * 100)) + 4}%`,
+                  left: '50%',
+                  transform: 'translateX(-50%)',
                   fontSize: 13, fontWeight: 700, zIndex: 2,
                   color: (water / waterGoal.glasses) >= 0.55 ? 'white' : '#0c447c',
-                  transition: 'color 0.3s ease',
+                  transition: 'all 0.3s ease',
+                  whiteSpace: 'nowrap',
                 })}>
                   {Math.round((water / waterGoal.glasses) * 100)}%
                 </div>
@@ -1084,7 +1041,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* ── Glasses grid with pop animation ── */}
+          {/* Glasses grid */}
           <div style={s({ display: 'flex', gap: 7, flexWrap: 'wrap' })}>
             {Array.from({ length: waterGoal.glasses }, (_, i) => (
               <div key={i} onClick={() => {
@@ -1105,7 +1062,7 @@ export default function Dashboard() {
             ))}
           </div>
 
-          {/* ── Hydration goal reached banner ── */}
+          {/* Hydration goal reached banner */}
           <div style={s({
             marginTop: 12,
             background: '#1a1a18',
@@ -1129,7 +1086,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ── HABITS SECTION — updated with bounce animation ── */}
+      {/* Habits */}
       <div style={s({ margin: '16px 22px 0' })}>
         <div style={s({ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 })}>
           <div style={s({ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: '#7a7a72', textTransform: 'uppercase' })}>Daily habits</div>
@@ -1148,27 +1105,21 @@ export default function Dashboard() {
                 const updated = { ...checkedHabits, [i]: !checkedHabits[i] }
                 setCheckedHabits(updated)
                 saveData({ habits: updated })
-                // Trigger bounce animation
                 setBouncingHabit(i)
                 setTimeout(() => setBouncingHabit(null), 400)
               }} style={s({
                 background: isChecked ? '#e8f5e0' : isHighlighted ? rec!.bg : 'white',
                 border: `${isHighlighted && !isChecked ? '2px' : '1.5px'} solid ${isChecked ? '#7db84a' : isHighlighted ? rec!.border : '#e4e0d8'}`,
                 borderRadius: 14, padding: 14, cursor: 'pointer', position: 'relative',
-                // Bounce on check, compress on uncheck
                 animation: bouncingHabit === i
                   ? (isChecked
                     ? 'habitUncheck 0.2s ease forwards'
                     : 'habitBounce 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards')
                   : 'none',
               })}>
-
-                {/* Recommendation dot */}
                 {isHighlighted && !isChecked && (
                   <div style={s({ position: 'absolute', top: 8, right: 8, width: 8, height: 8, borderRadius: '50%', background: rec!.dot })}/>
                 )}
-
-                {/* Green checkmark circle — top right when checked */}
                 {isChecked && (
                   <div style={s({
                     position: 'absolute', top: 8, right: 8,
@@ -1176,16 +1127,12 @@ export default function Dashboard() {
                     background: '#4a7c2f',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   })}>
-                    <svg
-                      width="10" height="8" viewBox="0 0 10 8" fill="none"
-                      style={{ animation: 'checkmarkIn 0.25s cubic-bezier(0.34,1.56,0.64,1) forwards' }}
-                    >
+                    <svg width="10" height="8" viewBox="0 0 10 8" fill="none"
+                      style={{ animation: 'checkmarkIn 0.25s cubic-bezier(0.34,1.56,0.64,1) forwards' }}>
                       <path d="M1 4l2.8 2.8L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                   </div>
                 )}
-
-                {/* Habit icon — pops on check */}
                 <div style={{
                   fontSize: 20, marginBottom: 6,
                   animation: bouncingHabit === i && !isChecked
@@ -1194,7 +1141,6 @@ export default function Dashboard() {
                 }}>
                   {h.icon}
                 </div>
-
                 <div style={s({ fontSize: 13, fontWeight: 600, color: isChecked ? '#4a7c2f' : isHighlighted ? rec!.text : '#3d3d3a' })}>{h.label}</div>
                 <div style={s({ fontSize: 11, color: '#7a7a72', marginTop: 2 })}>{h.sub}</div>
               </div>
@@ -1202,8 +1148,8 @@ export default function Dashboard() {
           })}
         </div>
       </div>
-      {/* ── END HABITS SECTION ── */}
 
+      {/* ── FIX 3: Static daily quote ── */}
       <QuoteBanner />
 
       {/* Bottom nav */}
