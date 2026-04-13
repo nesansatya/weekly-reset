@@ -26,13 +26,26 @@ export async function POST(request: Request) {
   const allowed = [
     'age_range', 'fitness_level', 'workout_days_per_week',
     'sleep_quality', 'health_challenge', 'work_schedule',
-    'body_feeling', 'eating_habits', 'water_intake', 'stress_level'
+    'body_feeling', 'eating_habits', 'water_intake', 'stress_level',
+    'goal', // mapped from health_challenge for dashboard use
   ]
 
-  // Only save allowed fields
   const updates: Record<string, string | number> = {}
   for (const key of allowed) {
     if (body[key] !== undefined) updates[key] = body[key]
+  }
+
+  // Auto-derive goal from health_challenge so both fields stay in sync
+  if (body.health_challenge && !body.goal) {
+    const goalMap: Record<string, string> = {
+      'Low energy': 'More energy',
+      'Poor sleep': 'Better sleep',
+      'Stress & anxiety': 'More energy',
+      'Weight management': 'Lose weight',
+      'Building consistency': 'Build habits',
+    }
+    const derived = goalMap[body.health_challenge]
+    if (derived) updates['goal'] = derived
   }
 
   const { data, error } = await supabase
