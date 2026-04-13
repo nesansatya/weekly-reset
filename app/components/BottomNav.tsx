@@ -1,33 +1,35 @@
-// Shared bottom nav — Today / Meals / Workout / Progress
-// Usage: <BottomNav active="meals" router={router} />
-
+'use client'
 import React from 'react'
+import { useRouter } from 'next/navigation'
 
 type NavItem = 'today' | 'meals' | 'workout' | 'progress'
 
 interface BottomNavProps {
   active: NavItem
-  router: ReturnType<typeof import('next/navigation').useRouter>
+  router: ReturnType<typeof useRouter>
 }
 
-const navItems = [
+const navItems: {
+  key: NavItem
+  label: string
+  path: string
+  icon: (active: boolean) => React.ReactNode
+}[] = [
   {
-    key: 'today' as NavItem,
+    key: 'today',
     label: 'Today',
     path: '/dashboard',
-    icon: (active: boolean) => (
+    icon: (active) => (
       <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-        <path d="M3 9.5L11 3L19 9.5V19C19 19.55 18.55 20 18 20H14V14H8V20H4C3.45 20 3 19.55 3 19V9.5Z"
-          stroke={active ? '#4a7c2f' : '#9a9a92'} strokeWidth="1.6" strokeLinejoin="round"
-          fill={active ? 'rgba(74,124,47,0.12)' : 'none'}/>
+        <path d="M3 9.5L11 3L19 9.5V19C19 19.55 18.55 20 18 20H14V14H8V20H4C3.45 20 3 19.55 3 19V9.5Z" stroke={active ? '#4a7c2f' : '#9a9a92'} strokeWidth="1.6" strokeLinejoin="round" fill={active ? 'rgba(74,124,47,0.12)' : 'none'}/>
       </svg>
     ),
   },
   {
-    key: 'meals' as NavItem,
+    key: 'meals',
     label: 'Meals',
     path: '/dashboard/meals',
-    icon: (active: boolean) => (
+    icon: (active) => (
       <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
         <path d="M4 6C4 5.45 4.45 5 5 5H17C17.55 5 18 5.45 18 6V8C18 10.76 15.31 13 12 13H10C6.69 13 4 10.76 4 8V6Z" stroke={active ? '#4a7c2f' : '#9a9a92'} strokeWidth="1.6"/>
         <path d="M11 13V18M8 18H14" stroke={active ? '#4a7c2f' : '#9a9a92'} strokeWidth="1.6" strokeLinecap="round"/>
@@ -37,10 +39,10 @@ const navItems = [
     ),
   },
   {
-    key: 'workout' as NavItem,
+    key: 'workout',
     label: 'Workout',
     path: '/dashboard/workout',
-    icon: (active: boolean) => (
+    icon: (active) => (
       <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
         <rect x="2" y="9" width="4" height="4" rx="1" stroke={active ? '#4a7c2f' : '#9a9a92'} strokeWidth="1.6"/>
         <rect x="16" y="9" width="4" height="4" rx="1" stroke={active ? '#4a7c2f' : '#9a9a92'} strokeWidth="1.6"/>
@@ -50,10 +52,10 @@ const navItems = [
     ),
   },
   {
-    key: 'progress' as NavItem,
+    key: 'progress',
     label: 'Progress',
     path: '/dashboard/progress',
-    icon: (active: boolean) => (
+    icon: (active) => (
       <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
         <path d="M3 16L8 10L12 13L16 7L19 9" stroke={active ? '#4a7c2f' : '#9a9a92'} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
         <path d="M16 7H19V10" stroke={active ? '#4a7c2f' : '#9a9a92'} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
@@ -66,7 +68,7 @@ export default function BottomNav({ active, router }: BottomNavProps) {
   return (
     <div style={{
       position: 'fixed', bottom: 0, left: 0, right: 0,
-      background: 'white', borderTop: '1px solid #e4e0d8',
+      background: 'white', borderTop: '0.5px solid #e4e0d8',
       display: 'flex', paddingTop: 10,
       paddingBottom: 'calc(env(safe-area-inset-bottom) + 10px)',
       zIndex: 100,
@@ -74,20 +76,9 @@ export default function BottomNav({ active, router }: BottomNavProps) {
       {navItems.map(n => {
         const isActive = n.key === active
         return (
-          <button
-            key={n.key}
-            onClick={() => router.push(n.path)}
-            style={{
-              flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
-              gap: 4, cursor: 'pointer', padding: '4px 0', background: 'none', border: 'none',
-            }}
-          >
+          <button key={n.key} onClick={() => router.push(n.path)} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, cursor: 'pointer', padding: '4px 0', background: 'none', border: 'none' }}>
             {n.icon(isActive)}
-            <div style={{
-              fontSize: 10, fontWeight: isActive ? 700 : 500,
-              color: isActive ? '#4a7c2f' : '#7a7a72',
-              fontFamily: "'DM Sans', Arial, sans-serif",
-            }}>{n.label}</div>
+            <div style={{ fontSize: 10, fontWeight: isActive ? 700 : 500, color: isActive ? '#4a7c2f' : '#7a7a72', fontFamily: "'DM Sans', Arial, sans-serif" }}>{n.label}</div>
             {isActive && <div style={{ width: 4, height: 4, borderRadius: '50%', background: '#4a7c2f' }}/>}
           </button>
         )

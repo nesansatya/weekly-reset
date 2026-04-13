@@ -565,21 +565,38 @@ export default function Dashboard() {
 
         {/* Bottom nav */}
         <div style={s({ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'white', borderTop: '0.5px solid #e4e0d8', display: 'flex', paddingTop: 10, paddingBottom: 'calc(env(safe-area-inset-bottom) + 10px)', zIndex: 100 })}>
+          {/* Today */}
           <button onClick={() => router.push('/dashboard')} style={s({ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, cursor: 'pointer', padding: '4px 0', background: 'none', border: 'none' })}>
             <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M3 9.5L11 3L19 9.5V19C19 19.55 18.55 20 18 20H14V14H8V20H4C3.45 20 3 19.55 3 19V9.5Z" stroke="#4a7c2f" strokeWidth="1.6" strokeLinejoin="round" fill="rgba(74,124,47,0.12)"/></svg>
             <div style={s({ fontSize: 10, fontWeight: 700, color: '#4a7c2f', fontFamily: "'DM Sans', Arial, sans-serif" })}>Today</div>
             <div style={s({ width: 4, height: 4, borderRadius: '50%', background: '#4a7c2f' })}/>
           </button>
-          <button onClick={() => router.push('/dashboard/workout')} style={s({ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, cursor: 'pointer', padding: '4px 0', background: 'none', border: 'none' })}>
-            <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="3" y="3" width="7" height="7" rx="1.5" stroke="#9a9a92" strokeWidth="1.6"/><rect x="12" y="3" width="7" height="7" rx="1.5" stroke="#9a9a92" strokeWidth="1.6"/><rect x="3" y="12" width="7" height="7" rx="1.5" stroke="#9a9a92" strokeWidth="1.6"/><rect x="12" y="12" width="7" height="7" rx="1.5" stroke="#9a9a92" strokeWidth="1.6"/></svg>
-            <div style={s({ fontSize: 10, fontWeight: 500, color: '#7a7a72', fontFamily: "'DM Sans', Arial, sans-serif" })}>Workout</div>
-          </button>
+          {/* Meals */}
           <button onClick={() => router.push('/dashboard/meals')} style={s({ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, cursor: 'pointer', padding: '4px 0', background: 'none', border: 'none' })}>
-            <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M4 6C4 5.45 4.45 5 5 5H17C17.55 5 18 5.45 18 6V8C18 10.76 15.31 13 12 13H10C6.69 13 4 10.76 4 8V6Z" stroke="#9a9a92" strokeWidth="1.6"/><path d="M11 13V18M8 18H14" stroke="#9a9a92" strokeWidth="1.6" strokeLinecap="round"/></svg>
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+              <path d="M4 6C4 5.45 4.45 5 5 5H17C17.55 5 18 5.45 18 6V8C18 10.76 15.31 13 12 13H10C6.69 13 4 10.76 4 8V6Z" stroke="#9a9a92" strokeWidth="1.6"/>
+              <path d="M11 13V18M8 18H14" stroke="#9a9a92" strokeWidth="1.6" strokeLinecap="round"/>
+              <path d="M4 7H3C2.45 7 2 7.45 2 8V9C2 10.1 2.9 11 4 11" stroke="#9a9a92" strokeWidth="1.6" strokeLinecap="round"/>
+              <path d="M18 7H19C19.55 7 20 7.45 20 8V9C20 10.1 19.1 11 18 11" stroke="#9a9a92" strokeWidth="1.6" strokeLinecap="round"/>
+            </svg>
             <div style={s({ fontSize: 10, fontWeight: 500, color: '#7a7a72', fontFamily: "'DM Sans', Arial, sans-serif" })}>Meals</div>
           </button>
+          {/* Workout */}
+          <button onClick={() => router.push('/dashboard/workout')} style={s({ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, cursor: 'pointer', padding: '4px 0', background: 'none', border: 'none' })}>
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+              <rect x="2" y="9" width="4" height="4" rx="1" stroke="#9a9a92" strokeWidth="1.6"/>
+              <rect x="16" y="9" width="4" height="4" rx="1" stroke="#9a9a92" strokeWidth="1.6"/>
+              <path d="M6 11H16" stroke="#9a9a92" strokeWidth="1.6" strokeLinecap="round"/>
+              <path d="M8 7V15M14 7V15" stroke="#9a9a92" strokeWidth="1.6" strokeLinecap="round"/>
+            </svg>
+            <div style={s({ fontSize: 10, fontWeight: 500, color: '#7a7a72', fontFamily: "'DM Sans', Arial, sans-serif" })}>Workout</div>
+          </button>
+          {/* Progress */}
           <button onClick={() => router.push('/dashboard/progress')} style={s({ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, cursor: 'pointer', padding: '4px 0', background: 'none', border: 'none' })}>
-            <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M3 16L8 10L12 13L16 7L19 9" stroke="#9a9a92" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/><path d="M16 7H19V10" stroke="#9a9a92" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+              <path d="M3 16L8 10L12 13L16 7L19 9" stroke="#9a9a92" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M16 7H19V10" stroke="#9a9a92" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
             <div style={s({ fontSize: 10, fontWeight: 500, color: '#7a7a72', fontFamily: "'DM Sans', Arial, sans-serif" })}>Progress</div>
           </button>
         </div>
