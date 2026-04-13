@@ -26,18 +26,23 @@ export async function GET(request: Request) {
     { error: 'Too many requests' },
     { status: 429, headers: { 'Retry-After': String(retryAfter) } }
   )
+
   const supabase = await makeClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   const { searchParams } = new URL(request.url)
   const date = searchParams.get('date') || new Date().toISOString().split('T')[0]
-  const { data } = await supabase
+
+  const { data, error } = await supabase
     .from('habit_logs')
-    .select('*')
+    .select('checked_habits, steps_range')
     .eq('user_id', user.id)
     .eq('log_date', date)
-    .single()
-  return NextResponse.json({ data: data || null })
+    .maybeSingle()
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ data })
 }
 
 export async function POST(request: Request) {
@@ -47,6 +52,7 @@ export async function POST(request: Request) {
   if (!await checkRequestSize(request)) return NextResponse.json(
     { error: 'Payload too large' }, { status: 413 }
   )
+
   const headersList = await headers()
   const ip = headersList.get('x-forwarded-for') ?? 'unknown'
   const { allowed, retryAfter } = rateLimit(ip)
@@ -54,20 +60,26 @@ export async function POST(request: Request) {
     { error: 'Too many requests' },
     { status: 429, headers: { 'Retry-After': String(retryAfter) } }
   )
+
   const supabase = await makeClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await request.json()
+  const { checkedHabits, stepsRange } = body
   const today = new Date().toISOString().split('T')[0]
 
   const { data, error } = await supabase
     .from('habit_logs')
-    .upsert({
-      user_id: user.id,
-      log_date: today,
-      checked_habits: body.checkedHabits,
-    }, { onConflict: 'user_id,log_date' })
+    .upsert(
+      {
+        user_id: user.id,
+        log_date: today,
+        checked_habits: checkedHabits,
+        steps_range: stepsRange ?? null,
+      },
+      { onConflict: 'user_id,log_date' }
+    )
     .select()
     .single()
 
