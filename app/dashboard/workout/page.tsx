@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useProStatus } from '../../hooks/useProStatus'
 import ProGate from '../../components/ProGate'
+import BottomNav from '../../components/BottomNav'
 
 const defaultExercises = [
   { name: 'Push-ups', sets: '3 × 12', category: 'Strength' },
@@ -100,35 +101,33 @@ export default function WorkoutBuilder() {
   )
 
   return (
-    <main style={s({ minHeight: '100vh', background: '#faf8f4', fontFamily: "'DM Sans', Arial, sans-serif", paddingBottom: 100 })}>
+    <main style={s({ minHeight: '100vh', background: '#faf8f4', fontFamily: "'DM Sans', Arial, sans-serif", paddingBottom: 90 })}>
 
-      {/* Header */}
-      <div style={s({ padding: '52px 22px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' })}>
-        <div>
-          <button onClick={() => router.push('/dashboard')} style={s({ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', color: '#3d3d3a', marginBottom: 12, display: 'block' })}>←</button>
-          <div style={s({ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: '#4a7c2f', textTransform: 'uppercase', marginBottom: 4 })}>Pro Feature</div>
-          <h1 style={s({ fontSize: 24, fontWeight: 700, color: '#1a1a18', fontFamily: "'DM Serif Display', Georgia, serif" })}>Workout Builder</h1>
-          <p style={s({ fontSize: 13, color: '#7a7a72', marginTop: 4 })}>Customise your weekly workout plan</p>
-        </div>
-        <div style={s({ background: '#1a1a18', borderRadius: 20, padding: '4px 12px', fontSize: 11, fontWeight: 700, color: '#a8c48a', marginTop: 44 })}>✦ Pro</div>
+      <div style={s({
+        padding: '16px 22px 20px',
+        paddingTop: 'calc(env(safe-area-inset-top) + 16px)',
+        background: '#1a1a18',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+      })}>
+        <div style={s({ fontSize: 24, fontWeight: 700, color: 'white', fontFamily: "'DM Serif Display', Georgia, serif" })}>Workout</div>
+        <div style={s({ background: 'rgba(125,184,74,0.15)', border: '1px solid rgba(125,184,74,0.3)', borderRadius: 20, padding: '4px 12px', fontSize: 11, fontWeight: 700, color: '#a8c48a' })}>✦ Pro</div>
       </div>
 
       {!isPro ? <ProGate feature="Workout Builder" /> : (
         <>
-          {/* Day selector */}
           <div style={s({ display: 'flex', gap: 6, padding: '16px 22px 0', overflowX: 'auto', scrollbarWidth: 'none' })}>
             {days.map(d => (
               <button key={d} onClick={() => setSelectedDay(d)} style={s({
                 padding: '8px 14px', borderRadius: 20, flexShrink: 0,
-                border: `1.5px solid ${selectedDay === d ? '#4a7c2f' : '#e4e0d8'}`,
-                background: selectedDay === d ? '#e8f5e0' : 'white',
-                color: selectedDay === d ? '#4a7c2f' : '#7a7a72',
+                border: `1.5px solid ${selectedDay === d ? '#1a1a18' : '#e4e0d8'}`,
+                background: selectedDay === d ? '#1a1a18' : 'white',
+                color: selectedDay === d ? 'white' : '#7a7a72',
                 fontSize: 12, fontWeight: 600, cursor: 'pointer',
                 fontFamily: "'DM Sans', Arial, sans-serif",
               })}>
                 {d.slice(0, 3)}
                 {(plan[d] || []).length > 0 && (
-                  <span style={s({ marginLeft: 4, background: '#4a7c2f', color: 'white', borderRadius: '50%', padding: '1px 5px', fontSize: 9 })}>
+                  <span style={s({ marginLeft: 4, background: selectedDay === d ? 'rgba(255,255,255,0.2)' : '#4a7c2f', color: 'white', borderRadius: '50%', padding: '1px 5px', fontSize: 9 })}>
                     {(plan[d] || []).length}
                   </span>
                 )}
@@ -136,18 +135,21 @@ export default function WorkoutBuilder() {
             ))}
           </div>
 
-          {/* Current day plan */}
           <div style={s({ margin: '16px 22px 0' })}>
             <div style={s({ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 })}>
-              <div style={s({ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: '#7a7a72', textTransform: 'uppercase' })}>
-                {selectedDay}'s workout {saved && <span style={{ color: '#4a7c2f' }}>· Saved ✓</span>}
+              <div style={s({ display: 'flex', alignItems: 'center', gap: 8 })}>
+                <div style={s({ width: 3, height: 14, background: '#4a7c2f', borderRadius: 2 })}/>
+                <div style={s({ fontSize: 12, fontWeight: 700, color: '#3d3d3a' })}>
+                  {selectedDay}
+                  {saved && <span style={s({ color: '#4a7c2f', marginLeft: 6 })}>· Saved</span>}
+                </div>
               </div>
-              {saving && <div style={s({ fontSize: 11, color: '#7a7a72' })}>Saving...</div>}
+              {saving && <div style={s({ fontSize: 11, color: '#9a9a92' })}>Saving…</div>}
             </div>
 
             {dayExercises.length === 0 ? (
               <div style={s({ background: 'white', borderRadius: 14, border: '1px dashed #e4e0d8', padding: '24px 16px', textAlign: 'center' })}>
-                <div style={s({ fontSize: 13, color: '#7a7a72' })}>No exercises yet — add some below!</div>
+                <div style={s({ fontSize: 13, color: '#9a9a92' })}>No exercises yet — add some below</div>
               </div>
             ) : (
               <div style={s({ background: 'white', borderRadius: 14, border: '1px solid #e4e0d8', overflow: 'hidden' })}>
@@ -158,14 +160,13 @@ export default function WorkoutBuilder() {
                       {ex.sets && <div style={s({ fontSize: 11, color: '#7a7a72', marginTop: 2 })}>{ex.sets}</div>}
                     </div>
                     <div style={s({ fontSize: 10, color: '#7a7a72', background: '#f5f2ec', padding: '2px 8px', borderRadius: 4 })}>{ex.category}</div>
-                    <button onClick={() => removeExercise(i)} style={s({ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', fontSize: 16, padding: '0 4px' })}>×</button>
+                    <button onClick={() => removeExercise(i)} style={s({ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', fontSize: 18, padding: '0 4px', lineHeight: 1 })}>×</button>
                   </div>
                 ))}
               </div>
             )}
           </div>
 
-          {/* Add custom exercise */}
           <div style={s({ margin: '12px 22px 0' })}>
             <button onClick={() => setShowAddCustom(!showAddCustom)} style={s({
               width: '100%', padding: '11px', background: 'white',
@@ -177,16 +178,10 @@ export default function WorkoutBuilder() {
             </button>
             {showAddCustom && (
               <div style={s({ background: 'white', border: '1px solid #e4e0d8', borderRadius: 14, padding: 16, marginTop: 8 })}>
-                <input
-                  type="text" placeholder="Exercise name"
-                  value={customName} onChange={e => setCustomName(e.target.value)}
-                  style={s({ width: '100%', padding: '10px 12px', border: '1.5px solid #e4e0d8', borderRadius: 8, fontSize: 14, color: '#1a1a18', outline: 'none', boxSizing: 'border-box', marginBottom: 8, fontFamily: "'DM Sans', Arial, sans-serif" })}
-                />
-                <input
-                  type="text" placeholder="Sets/reps (e.g. 3 × 12)"
-                  value={customSets} onChange={e => setCustomSets(e.target.value)}
-                  style={s({ width: '100%', padding: '10px 12px', border: '1.5px solid #e4e0d8', borderRadius: 8, fontSize: 14, color: '#1a1a18', outline: 'none', boxSizing: 'border-box', marginBottom: 10, fontFamily: "'DM Sans', Arial, sans-serif" })}
-                />
+                <input type="text" placeholder="Exercise name" value={customName} onChange={e => setCustomName(e.target.value)}
+                  style={s({ width: '100%', padding: '10px 12px', border: '1.5px solid #e4e0d8', borderRadius: 8, fontSize: 14, color: '#1a1a18', outline: 'none', boxSizing: 'border-box', marginBottom: 8, fontFamily: "'DM Sans', Arial, sans-serif" })}/>
+                <input type="text" placeholder="Sets/reps (e.g. 3 × 12)" value={customSets} onChange={e => setCustomSets(e.target.value)}
+                  style={s({ width: '100%', padding: '10px 12px', border: '1.5px solid #e4e0d8', borderRadius: 8, fontSize: 14, color: '#1a1a18', outline: 'none', boxSizing: 'border-box', marginBottom: 10, fontFamily: "'DM Sans', Arial, sans-serif" })}/>
                 <button onClick={addCustom} style={s({ width: '100%', padding: '10px', background: '#4a7c2f', color: 'white', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', Arial, sans-serif" })}>
                   Add to {selectedDay}
                 </button>
@@ -194,9 +189,11 @@ export default function WorkoutBuilder() {
             )}
           </div>
 
-          {/* Exercise library */}
           <div style={s({ margin: '16px 22px 0' })}>
-            <div style={s({ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: '#7a7a72', textTransform: 'uppercase', marginBottom: 10 })}>Exercise library</div>
+            <div style={s({ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 })}>
+              <div style={s({ width: 3, height: 14, background: '#4a7c2f', borderRadius: 2 })}/>
+              <div style={s({ fontSize: 12, fontWeight: 700, color: '#3d3d3a' })}>Exercise library</div>
+            </div>
             <div style={s({ display: 'flex', gap: 6, marginBottom: 12, overflowX: 'auto', scrollbarWidth: 'none' })}>
               {categories.map(c => (
                 <button key={c} onClick={() => setFilter(c)} style={s({
@@ -226,7 +223,7 @@ export default function WorkoutBuilder() {
                       fontSize: 12, fontWeight: 600, cursor: already ? 'default' : 'pointer',
                       fontFamily: "'DM Sans', Arial, sans-serif",
                     })}>
-                      {already ? 'Added ✓' : '+ Add'}
+                      {already ? 'Added' : '+ Add'}
                     </button>
                   </div>
                 )
@@ -236,22 +233,7 @@ export default function WorkoutBuilder() {
         </>
       )}
 
-      {/* Bottom nav */}
-      <div style={s({ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'white', borderTop: '1px solid #e4e0d8', display: 'flex', padding: '10px 0 20px', zIndex: 100 })}>
-        {[
-          { icon: '🏠', label: 'Today', path: '/dashboard', active: false },
-          { icon: '📊', label: 'Summary', path: '/dashboard/summary', active: false },
-          { icon: '🥗', label: 'Meals', path: '/dashboard/meals', active: false },
-          { icon: '📈', label: 'Progress', path: '/dashboard/progress', active: false },
-        ].map(n => (
-          <button key={n.label} onClick={() => router.push(n.path)} style={s({ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, cursor: 'pointer', padding: '6px 0', background: 'none', border: 'none' })}>
-            <div style={{ fontSize: 18 }}>{n.icon}</div>
-            <div style={s({ fontSize: 10, fontWeight: n.active ? 700 : 500, color: n.active ? '#4a7c2f' : '#7a7a72', fontFamily: "'DM Sans', Arial, sans-serif" })}>{n.label}</div>
-            {n.active && <div style={s({ width: 4, height: 4, borderRadius: '50%', background: '#4a7c2f' })}/>}
-          </button>
-        ))}
-      </div>
-
+      <BottomNav active="workout" router={router} />
     </main>
   )
 }
